@@ -1,0 +1,19 @@
+{
+  "name": "automend",
+  "version": "1.0.0",
+  "description": "AutoMend is a full-stack MERN application designed to streamline vehicle repair services and garage operations. It provides a centralized platform where customers, mechanics, and admin interact seamlessly to manage repair workflows, bookings, and payments.",
+  "license": "ISC",
+  "author": "Maria",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "node server/server.js",
+    "dev": "node --watch server/server.js"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.4.1"
+  }
+}
