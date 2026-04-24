@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  /* ⚪ Base Colors (Background) */
+  --color-primary: #FFFFFF;
+  --color-secondary: #FFFFFF;
+  --color-soft: #F8FAFC;
+  --color-section: #F1F5F9;
+
+  /* 🔵 Primary Brand (Pastel Blue System) */
+  --color-brand: #8CA9FF;
+  --color-brand-light: #AAC4F5;
+  --color-brand-dark: #6B8CE0;
+  --color-brand-deep: #1F3F7A;
+
+  /* ⚫ Text Colors (Dark contrast for pastel backgrounds) */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748B;
+
+  /* 📏 Borders */
+  --color-border-soft: #E2E8F0;
+  --color-border-highlight: #8CA9FF;
+
+  /* 🟢 Status Colors */
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+
+  /* Typography */
+  --font-sans: 'Inter', 'system-ui', sans-serif;
+  --font-heading: 'Poppins', 'system-ui', sans-serif;
+  --font-secondary: 'Roboto', 'system-ui', sans-serif;
+
+  /* Shadows */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.5s ease-in;
+  --animate-slide-up: slide-up 0.5s ease-out;
+  --animate-slide-in-left: slide-in-left 0.3s ease-out;
+  --animate-slide-down: slide-down 0.3s ease-out;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes slide-in-left {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
+  }
+
+  @keyframes slide-down {
+    0% { transform: translateY(-10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+}
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-brand) var(--color-soft);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--color-soft);
+    color: var(--color-text-secondary);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+    color: var(--color-text-primary);
+  }
+
+  ::selection {
+    background-color: var(--color-brand);
+    color: var(--color-primary);
+  }
+}
