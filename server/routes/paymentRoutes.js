@@ -1,35 +1,22 @@
 import express from "express";
 import {
-  createPayment,
-  mechanicConfirmPayment,
-  adminRecordPayment,
-  settleWallet,
+  createOrder,
+  verifyPayment,
   getAllPayments,
+  getMechanicEarnings,
 } from "../controllers/paymentController.js";
 import {
   protect,
   forCustomer,
-  forMechanic,
   forAdmin,
+  forApprovedMechanic,
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/:jobId/pay", protect, forCustomer, createPayment);
-router.put(
-  "/:id/mechanic-confirm",
-  protect,
-  forMechanic,
-  mechanicConfirmPayment,
-);
-
+router.post("/create-order", protect, forCustomer, createOrder);
+router.post("/verify", protect, verifyPayment);
 router.get("/admin/all", protect, forAdmin, getAllPayments);
-router.put("/admin/:id/record", protect, forAdmin, adminRecordPayment);
-router.put(
-  "/admin/mechanics/:id/settle-wallet",
-  protect,
-  forAdmin,
-  settleWallet,
-);
+router.get("/mechanic", protect, forApprovedMechanic, getMechanicEarnings);
 
 export default router;

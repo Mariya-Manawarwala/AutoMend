@@ -1,11 +1,11 @@
 import Payment from "../models/Payment.js";
 import RepairJob from "../models/RepairJob.js";
 import RepairRequest from "../models/RepairRequest.js";
-import User from "../models/User.js";
+import Coupon from "../models/Coupon.js";
 import Notification from "../models/Notification.js";
 
-export const createPayment = async (req, res) => {
-  const job = await RepairJob.findById(req.params.jobId);
+export const createOrder = async (req, res) => {
+  const job = await RepairJob.findById(req.body.jobId || req.params.jobId);
   if (
     !job ||
     job.jobStatus !== "PaymentPending" ||
@@ -15,74 +15,49 @@ export const createPayment = async (req, res) => {
     throw new Error("Invalid job or not authorized");
   }
 
-  const { paymentMethod, note } = req.body;
-  const amount = job.adminApprovedCost;
-
-  let paymentStatus = "Pending";
-  let paidAt = null;
-
-  if (paymentMethod === "Online") {
-    paymentStatus = "Completed";
-    paidAt = new Date();
-    job.jobStatus = "PaymentConfirmed";
-    await job.save();
-    await RepairRequest.findByIdAndUpdate(job.requestId, {
-      status: "Completed",
-    });
-    await Notification.create({
-      userId: req.user._id,
-      message: `Payment of ₹${amount} successful.`,
-    });
-    await Notification.create({
-      userId: job.mechanicId,
-      message: `Online payment received.`,
-    });
+  if (job.totalCost <= 0) {
+    res.status(400);
+    throw new Error(
+      "Job total amount must be calculated before creating an order",
+    );
   }
 
+  const orderId = `order_${job._id}_${Date.now()}`;
   const payment = await Payment.create({
     jobId: job._id,
     requestId: job.requestId,
     customerId: req.user._id,
     mechanicId: job.mechanicId,
-    amount,
-    paymentMethod,
-    paymentStatus,
-    paidAt,
-    note: note || "",
+    amount: job.totalCost,
+    paymentMethod: "Online",
+    paymentStatus: "Pending",
+    orderId,
+    note: req.body.note || "",
   });
 
-  res.status(201).json(payment);
+  res.status(201).json({
+    payment,
+    orderId,
+    amount: payment.amount,
+    message: "Order created, ready for verification",
+  });
 };
 
-export const mechanicConfirmPayment = async (req, res) => {
-  const payment = await Payment.findById(req.params.id);
-  if (!payment || payment.mechanicId.toString() !== req.user._id.toString()) {
+export const verifyPayment = async (req, res) => {
+  const { orderId, paymentId } = req.body;
+  if (!orderId || !paymentId) {
     res.status(400);
-    throw new Error("Payment not found or unauthorized");
+    throw new Error("orderId and paymentId are required");
   }
 
-  payment.paymentStatus = "MechanicConfirmed";
-  payment.mechanicConfirmedAt = new Date();
-  await payment.save();
-
-  if (payment.paymentMethod === "Cash") {
-    await User.findByIdAndUpdate(req.user._id, {
-      $inc: { "mechanicWallet.dueBalance": payment.amount },
-    });
-  }
-
-  await Notification.create({
-    userId: payment.customerId,
-    message: `Mechanic confirmed your ₹${payment.amount} payment.`,
-  });
-  res.json(payment);
-};
-
-export const adminRecordPayment = async (req, res) => {
-  const payment = await Payment.findById(req.params.id);
-  if (!payment) {
+  const payment = await Payment.findOne({ orderId });
+  if (!payment || payment._id.toString() !== paymentId) {
     res.status(404);
     throw new Error("Payment not found");
+  }
+
+  if (payment.paymentStatus === "Completed") {
+    return res.json(payment);
   }
 
   payment.paymentStatus = "Completed";
@@ -94,33 +69,84 @@ export const adminRecordPayment = async (req, res) => {
     job.jobStatus = "Completed";
     job.completedAt = new Date();
     await job.save();
+
+    if (job.couponCode) {
+      const coupon = await Coupon.findOne({ code: job.couponCode });
+      if (coupon && coupon.usedCount < coupon.usageLimit) {
+        coupon.usedCount += 1;
+        await coupon.save();
+      }
+    }
   }
+
   await RepairRequest.findByIdAndUpdate(payment.requestId, {
     status: "Completed",
   });
 
-  await Notification.create({
-    userId: payment.customerId,
-    message: `Cash payment recorded.`,
-  });
+  await Notification.insertMany([
+    {
+      userId: payment.customerId,
+      message: `Payment of ₹${payment.amount} verified successfully.`,
+      type: "payment_success",
+    },
+    {
+      userId: payment.mechanicId,
+      message: `Payment of ₹${payment.amount} has been completed.`,
+      type: "payment_received",
+    },
+  ]);
+
   res.json(payment);
 };
 
-export const settleWallet = async (req, res) => {
-  const mechanic = await User.findById(req.params.id);
-  if (!mechanic || mechanic.role !== "mechanic") {
-    res.status(404);
-    throw new Error("Mechanic not found");
+export const getMechanicEarnings = async (req, res) => {
+  const mechanicId = req.user._id;
+  const { month, year } = req.query;
+
+  const jobs = await RepairJob.find({
+    mechanicId,
+    jobStatus: "Completed",
+  }).select("_id");
+
+  const jobIds = jobs.map((job) => job._id);
+
+  const dateFilter = {};
+  if (month && year) {
+    const start = new Date(Number(year), Number(month) - 1, 1);
+    const end = new Date(Number(year), Number(month), 0, 23, 59, 59);
+    dateFilter.createdAt = { $gte: start, $lte: end };
   }
 
-  mechanic.mechanicWallet.dueBalance = 0;
-  await mechanic.save();
+  const payments = await Payment.find({
+    jobId: { $in: jobIds },
+    paymentStatus: "Completed",
+    ...dateFilter,
+  })
+    .populate({
+      path: "jobId",
+      select: "vehicle description totalCost createdAt",
+    })
+    .sort({ createdAt: -1 });
 
-  await Notification.create({
-    userId: mechanic._id,
-    message: `Your wallet balance was settled by admin.`,
+  const earnings = payments
+    .filter((payment) => payment.jobId)
+    .map((payment) => ({
+      paymentId: payment._id,
+      jobId: payment.jobId._id,
+      vehicle: payment.jobId.vehicle,
+      description: payment.jobId.description,
+      amount: payment.amount,
+      date: payment.createdAt,
+    }));
+
+  const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
+
+  res.status(200).json({
+    success: true,
+    totalEarnings,
+    count: earnings.length,
+    earnings,
   });
-  res.json(mechanic);
 };
 
 export const getAllPayments = async (req, res) => {

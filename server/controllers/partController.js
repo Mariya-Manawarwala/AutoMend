@@ -1,12 +1,21 @@
 import Part from "../models/Part.js";
 
 export const addPart = async (req, res) => {
-  const { name, price, category, unit } = req.body;
-  if (!name || !price) {
+  const { name, unitPrice, category, unit, stock, minStock, supplier } =
+    req.body;
+  if (!name || !unitPrice) {
     res.status(400);
-    throw new Error("Name and price are required");
+    throw new Error("Name and unitPrice are required");
   }
-  const part = await Part.create({ name, price, category, unit });
+  const part = await Part.create({
+    name,
+    unitPrice,
+    category,
+    unit,
+    stock,
+    minStock,
+    supplier,
+  });
   res.status(201).json(part);
 };
 
@@ -22,11 +31,23 @@ export const updatePart = async (req, res) => {
     throw new Error("Part not found");
   }
 
-  const { name, price, category, unit, isActive } = req.body;
+  const {
+    name,
+    unitPrice,
+    category,
+    unit,
+    stock,
+    minStock,
+    supplier,
+    isActive,
+  } = req.body;
   if (name !== undefined) part.name = name;
-  if (price !== undefined) part.price = price;
+  if (unitPrice !== undefined) part.unitPrice = unitPrice;
   if (category !== undefined) part.category = category;
   if (unit !== undefined) part.unit = unit;
+  if (stock !== undefined) part.stock = stock;
+  if (minStock !== undefined) part.minStock = minStock;
+  if (supplier !== undefined) part.supplier = supplier;
   if (isActive !== undefined) part.isActive = isActive;
 
   const updatedPart = await part.save();

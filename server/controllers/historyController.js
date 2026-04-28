@@ -1,91 +1,102 @@
 import RepairJob from "../models/RepairJob.js";
 import Payment from "../models/Payment.js";
 
-export const getCustomerHistory = async (req, res) => {
-  const jobs = await RepairJob.find({
-    customerId: req.user._id,
-    jobStatus: "Completed",
-  })
-    .populate("vehicleId")
-    .populate("requestId")
-    .sort({ completedAt: -1 });
+export const getHistory = async (req, res) => {
+  let jobs;
+  let payments;
 
-  const payments = await Payment.find({
-    customerId: req.user._id,
-    paymentStatus: "Completed",
-  });
+  if (req.user.role === "customer") {
+    jobs = await RepairJob.find({
+      customerId: req.user._id,
+      jobStatus: "Completed",
+    })
+      .populate("vehicleId")
+      .populate("requestId")
+      .sort({ completedAt: -1 });
 
-  const history = jobs.map((job) => {
-    const payment = payments.find(
-      (p) => p.jobId.toString() === job._id.toString(),
-    );
-    return {
-      jobId: job._id,
-      vehicle: job.vehicleId,
-      problem: job.requestId?.problemDescription,
-      servicesUsed: job.servicesUsed,
-      partsUsed: job.partsUsed,
-      totalPaid: job.adminApprovedCost || job.totalCost,
-      paymentMethod: payment?.paymentMethod || "N/A",
-      dateCompleted: job.completedAt,
-    };
-  });
-  res.json(history);
-};
+    payments = await Payment.find({
+      customerId: req.user._id,
+      paymentStatus: "Completed",
+    });
 
-export const getMechanicHistory = async (req, res) => {
-  const jobs = await RepairJob.find({
-    mechanicId: req.user._id,
-    jobStatus: "Completed",
-  })
-    .populate("vehicleId")
-    .sort({ completedAt: -1 });
+    const history = jobs.map((job) => {
+      const payment = payments.find(
+        (p) => p.jobId.toString() === job._id.toString(),
+      );
+      return {
+        jobId: job._id,
+        vehicle: job.vehicleId,
+        problem: job.requestId?.problemDescription,
+        servicesUsed: job.servicesUsed,
+        partsUsed: job.partsUsed,
+        totalPaid: payment?.amount || job.totalCost,
+        paymentMethod: payment?.paymentMethod || "N/A",
+        dateCompleted: job.completedAt,
+      };
+    });
 
-  const payments = await Payment.find({
-    mechanicId: req.user._id,
-    paymentStatus: "Completed",
-  });
+    return res.json(history);
+  }
 
-  const history = jobs.map((job) => {
-    const payment = payments.find(
-      (p) => p.jobId.toString() === job._id.toString(),
-    );
-    return {
-      jobId: job._id,
-      vehicle: job.vehicleId,
-      servicesPerformed: job.servicesUsed,
-      partsUsed: job.partsUsed,
-      earnings: payment?.amount || job.adminApprovedCost || job.totalCost,
-      dateCompleted: job.completedAt,
-    };
-  });
-  res.json(history);
-};
+  if (req.user.role === "mechanic") {
+    jobs = await RepairJob.find({
+      mechanicId: req.user._id,
+      jobStatus: "Completed",
+    })
+      .populate("vehicleId")
+      .sort({ completedAt: -1 });
 
-export const getAdminHistory = async (req, res) => {
-  const jobs = await RepairJob.find({ jobStatus: "Completed" })
-    .populate("vehicleId")
-    .populate("customerId")
-    .populate("mechanicId")
-    .populate("requestId")
-    .sort({ completedAt: -1 });
+    payments = await Payment.find({
+      mechanicId: req.user._id,
+      paymentStatus: "Completed",
+    });
 
-  const payments = await Payment.find({ paymentStatus: "Completed" });
+    const history = jobs.map((job) => {
+      const payment = payments.find(
+        (p) => p.jobId.toString() === job._id.toString(),
+      );
+      return {
+        jobId: job._id,
+        vehicle: job.vehicleId,
+        servicesPerformed: job.servicesUsed,
+        partsUsed: job.partsUsed,
+        earnings: payment?.amount || job.totalCost,
+        dateCompleted: job.completedAt,
+      };
+    });
 
-  const history = jobs.map((job) => {
-    const payment = payments.find(
-      (p) => p.jobId.toString() === job._id.toString(),
-    );
-    return {
-      jobId: job._id,
-      customer: job.customerId,
-      mechanic: job.mechanicId,
-      vehicle: job.vehicleId,
-      problem: job.requestId?.problemDescription,
-      totalCost: job.totalCost,
-      paymentMethod: payment?.paymentMethod || "N/A",
-      dateCompleted: job.completedAt,
-    };
-  });
-  res.json(history);
+    return res.json(history);
+  }
+
+  if (req.user.role === "admin") {
+    jobs = await RepairJob.find({ jobStatus: "Completed" })
+      .populate("vehicleId")
+      .populate("customerId")
+      .populate("mechanicId")
+      .populate("requestId")
+      .sort({ completedAt: -1 });
+
+    payments = await Payment.find({ paymentStatus: "Completed" });
+
+    const history = jobs.map((job) => {
+      const payment = payments.find(
+        (p) => p.jobId.toString() === job._id.toString(),
+      );
+      return {
+        jobId: job._id,
+        customer: job.customerId,
+        mechanic: job.mechanicId,
+        vehicle: job.vehicleId,
+        problem: job.requestId?.problemDescription,
+        totalCost: job.totalCost,
+        paymentMethod: payment?.paymentMethod || "N/A",
+        dateCompleted: job.completedAt,
+      };
+    });
+
+    return res.json(history);
+  }
+
+  res.status(403);
+  throw new Error("Not authorized to view history");
 };

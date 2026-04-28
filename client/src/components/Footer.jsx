@@ -1,103 +1,52 @@
-import { Link } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import { Link } from 'react-router-dom'
+import { FaCar, FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
+
+const LINKS = [
+  { title: 'Services', links: [{ l: 'Engine Repair', p: '/services' }, { l: 'Oil Change', p: '/services' }, { l: 'Tire Service', p: '/services' }, { l: 'Battery Replacement', p: '/services' }, { l: 'Emergency Help', p: '/services' }] },
+  { title: 'Company', links: [{ l: 'About Us', p: '/about' }, { l: 'Our Mechanics', p: '/mechanics' }, { l: 'Careers', p: '#' }, { l: 'Blog', p: '#' }, { l: 'Contact', p: '#' }] },
+  { title: 'Support', links: [{ l: 'Help Center', p: '#' }, { l: 'FAQs', p: '#' }, { l: 'Privacy Policy', p: '#' }, { l: 'Terms of Service', p: '#' }, { l: 'Refund Policy', p: '#' }] },
+]
+const SOCIALS = [FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn]
 
 export default function Footer() {
   return (
-    <footer className="bg-brand border-t border-brand-light">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
-          {/* Brand */}
-          <div>
-            <h2 className="text-2xl font-bold mb-4">
-              <span className="text-white">Auto</span>
-              <span className="text-brand-deep">Mend</span>
-            </h2>
-            <p className="text-[#1F3F7A] font-medium text-sm leading-relaxed mb-4">
-              Auto Painting & Collision Repair Shop. We help you put your car and your life back into the fast lane!
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-[#1F3F7A]/10 text-brand-deep hover:bg-white hover:text-brand flex items-center justify-center transition-colors">
-                <FaFacebook size={20} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#1F3F7A]/10 text-brand-deep hover:bg-white hover:text-brand flex items-center justify-center transition-colors">
-                <FaTwitter size={20} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#1F3F7A]/10 text-brand-deep hover:bg-white hover:text-brand flex items-center justify-center transition-colors">
-                <FaInstagram size={20} />
-              </a>
+    <footer className="bg-deep-black text-white relative overflow-hidden border-t border-white/5">
+      <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-warm-brown/10 via-transparent to-transparent pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+          <div className="lg:col-span-2">
+            <Link to="/" className="flex items-center gap-3 mb-5 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold to-light-gold flex items-center justify-center shadow-[0_0_15px_rgba(200,155,60,0.3)] transition-all">
+                <FaCar className="text-deep-black text-lg" />
+              </div>
+              <span className="text-xl font-heading font-bold text-white">Auto<span className="text-gold">Mend</span></span>
+            </Link>
+            <p className="text-text-muted text-sm font-body leading-relaxed mb-6 max-w-sm">Premium garage services delivered to your doorstep. Book expert mechanics instantly with transparent pricing and guaranteed satisfaction.</p>
+            <div className="flex flex-col gap-3 text-sm font-body text-text-muted">
+              <span className="flex items-center gap-3 hover:text-white transition-colors"><FaMapMarkerAlt className="text-gold text-xs" /> 123 Auto Street, Motor City</span>
+              <span className="flex items-center gap-3 hover:text-white transition-colors"><FaPhone className="text-gold text-xs" /> +1 (555) 123-4567</span>
+              <span className="flex items-center gap-3 hover:text-white transition-colors"><FaEnvelope className="text-gold text-xs" /> support@automend.com</span>
             </div>
           </div>
-
-          {/* Our Services */}
-          <div>
-            <h3 className="text-brand-deep font-bold mb-4 text-sm uppercase tracking-wider">Our Services</h3>
-            <ul className="space-y-2">
-              {["Engine Diagnostics", "Lube, Oil and Filters", "Air Conditioning", "Brake Repair", "Tire & Wheel", "Performance Upgrades"].map((item) => (
-                <li key={item}>
-                  <Link to="/services" className="text-[#1F3F7A] font-medium hover:text-white text-sm transition-colors">
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Latest News */}
-          <div>
-            <h3 className="text-brand-deep font-bold mb-4 text-sm uppercase tracking-wider">Latest News</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link to="/blog" className="group">
-                  <h4 className="text-[#1F3F7A] text-sm font-bold group-hover:text-white transition">20th car looking much smarter</h4>
-                  <p className="text-white text-xs mt-1 font-medium">July 20, 2026</p>
-                </Link>
-              </li>
-              <li>
-                <Link to="/blog" className="group">
-                  <h4 className="text-[#1F3F7A] text-sm font-bold group-hover:text-white transition">Get your vehicle ready for winter</h4>
-                  <p className="text-white text-xs mt-1 font-medium">October 15, 2026</p>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Service Hours */}
-          <div>
-            <h3 className="text-brand-deep font-bold mb-4 text-sm uppercase tracking-wider">Service Hours</h3>
-            <ul className="space-y-3 text-sm text-[#1F3F7A] font-medium">
-              <li className="flex justify-between border-b border-brand-light pb-2">
-                <span>Monday</span>
-                <span>7:00 - 18:00</span>
-              </li>
-              <li className="flex justify-between border-b border-brand-light pb-2">
-                <span>Tuesday</span>
-                <span>7:00 - 18:00</span>
-              </li>
-              <li className="flex justify-between border-b border-brand-light pb-2">
-                <span>Wednesday</span>
-                <span>7:00 - 18:00</span>
-              </li>
-              <li className="flex justify-between border-b border-brand-light pb-2">
-                <span>Saturday</span>
-                <span>7:00 - 15:00</span>
-              </li>
-              <li className="flex justify-between pt-1">
-                <span>Sunday</span>
-                <span className="text-white font-bold bg-brand-deep/20 px-2 py-0.5 rounded">Closed</span>
-              </li>
-            </ul>
-          </div>
+          {LINKS.map(c => (
+            <div key={c.title}>
+              <h4 className="text-white font-heading font-semibold text-sm mb-5 uppercase tracking-wider">{c.title}</h4>
+              <ul className="flex flex-col gap-3">
+                {c.links.map(lk => <li key={lk.l}><Link to={lk.p} className="text-text-muted text-sm font-body hover:text-gold transition-colors flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-gold/50 group-hover:bg-gold transition-colors" /> {lk.l}</Link></li>)}
+              </ul>
+            </div>
+          ))}
         </div>
-
-        <div className="border-t border-brand-light mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-brand-deep font-medium text-xs">Copyright 2026. All Rights Reserved AutoMend</p>
-          <div className="flex gap-6">
-            {["Home", "Privacy", "Privacy Policy", "Contact"].map((link) => (
-              <a key={link} href="#" className="text-[#1F3F7A] font-medium hover:text-white text-xs transition-colors">{link}</a>
+        <div className="border-t border-white/5 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-text-muted text-xs font-body">© 2026 AutoMend. All rights reserved.</p>
+          <div className="flex items-center gap-3">
+            {SOCIALS.map((I, i) => (
+              <a key={i} href="#" className="w-9 h-9 rounded-lg bg-soft-dark border border-white/5 flex items-center justify-center text-text-muted hover:text-deep-black hover:bg-gradient-to-r hover:from-gold hover:to-light-gold hover:shadow-[0_0_15px_rgba(200,155,60,0.4)] transition-all"><I className="text-sm" /></a>
             ))}
           </div>
         </div>
       </div>
     </footer>
-  );
+  )
 }

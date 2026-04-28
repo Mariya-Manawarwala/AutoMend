@@ -20,18 +20,21 @@ const userSchema = new mongoose.Schema(
     profilePhoto: String,
     dateJoined: { type: Date, default: Date.now },
 
-    // Admin Fields
-    garageAddress: String,
-    openingTime: String,
-    closingTime: String,
-    contactInfo: {
-      phone: String,
-      altPhone: String,
-      email: String,
-      website: String,
-      instagram: String,
+    garageLocation: {
+      address: String,
+      lat: Number,
+      lng: Number,
     },
-    serviceRange: Number,
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
 
     // Mechanic Fields
     skills: [String],

@@ -1,12 +1,17 @@
 import Service from "../models/Service.js";
 
 export const addService = async (req, res) => {
-  const { name, price, category, description } = req.body;
-  if (!name || !price) {
+  const { name, basePrice, category, description } = req.body;
+  if (!name || !basePrice) {
     res.status(400);
-    throw new Error("Name and price are required");
+    throw new Error("Name and basePrice are required");
   }
-  const service = await Service.create({ name, price, category, description });
+  const service = await Service.create({
+    name,
+    basePrice,
+    category,
+    description,
+  });
   res.status(201).json(service);
 };
 
@@ -22,9 +27,9 @@ export const updateService = async (req, res) => {
     throw new Error("Service not found");
   }
 
-  const { name, price, category, description, isActive } = req.body;
+  const { name, basePrice, category, description, isActive } = req.body;
   if (name !== undefined) service.name = name;
-  if (price !== undefined) service.price = price;
+  if (basePrice !== undefined) service.basePrice = basePrice;
   if (category !== undefined) service.category = category;
   if (description !== undefined) service.description = description;
   if (isActive !== undefined) service.isActive = isActive;

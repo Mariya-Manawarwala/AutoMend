@@ -9,28 +9,40 @@ dotenv.config();
 
 const services = [
   {
-    name: "Engine Repair",
-    price: 3500,
+    name: "Full Engine Diagnostic",
+    basePrice: 1500,
     category: "Engine",
-    description: "Engine repair",
+    duration: "1.5 hrs",
+    description: "Comprehensive scan and manual inspection of all engine components.",
   },
   {
-    name: "Oil Change",
-    price: 800,
-    category: "Engine",
-    description: "Oil change",
+    name: "Premium Oil Change",
+    basePrice: 850,
+    category: "Maintenance",
+    duration: "45 mins",
+    description: "Synthetic oil replacement and high-performance filter installation.",
   },
   {
-    name: "Brake Service",
-    price: 1200,
+    name: "Brake System Overhaul",
+    basePrice: 2200,
     category: "Brakes",
-    description: "Brake fix",
+    duration: "2 hrs",
+    description: "Replacement of pads, rotors, and fluid flush for maximum safety.",
+  },
+  {
+    name: "AC Gas Recharge",
+    basePrice: 1200,
+    category: "Cooling",
+    duration: "1 hr",
+    description: "Full AC system check and R134a refrigerant refill.",
   },
 ];
 
 const parts = [
-  { name: "Engine Oil", price: 500, category: "Engine", unit: "litre" },
-  { name: "Brake Pads", price: 1500, category: "Brakes", unit: "set" },
+  { name: "Synthetic Motor Oil (5L)", unitPrice: 3200, category: "Fluids", unit: "can", stock: 25, minStock: 5, supplier: "Shell" },
+  { name: "Ceramic Brake Pads", unitPrice: 1800, category: "Brakes", unit: "set", stock: 12, minStock: 4, supplier: "Bosch" },
+  { name: "Oil Filter (Universal)", unitPrice: 450, category: "Filters", unit: "piece", stock: 50, minStock: 10, supplier: "Mann" },
+  { name: "Air Filter", unitPrice: 650, category: "Filters", unit: "piece", stock: 30, minStock: 8, supplier: "K&N" },
 ];
 
 const seedData = async () => {

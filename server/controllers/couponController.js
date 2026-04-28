@@ -53,38 +53,3 @@ export const updateCoupon = async (req, res) => {
   const updated = await coupon.save();
   res.json(updated);
 };
-
-export const applyCoupon = async (req, res) => {
-  const { code, jobId } = req.body;
-  const coupon = await Coupon.findOne({
-    code: code.toUpperCase(),
-    isActive: true,
-  });
-  if (
-    !coupon ||
-    coupon.expiresAt < new Date() ||
-    coupon.usedCount >= coupon.usageLimit
-  ) {
-    res.status(400);
-    throw new Error("Coupon invalid, expired, or limit reached");
-  }
-
-  const job = await RepairJob.findById(jobId);
-  if (!job || job.subtotal < coupon.minOrderValue) {
-    res.status(400);
-    throw new Error("Job not found or min value not met");
-  }
-
-  let discountAmount =
-    coupon.discountType === "Percentage"
-      ? (job.subtotal * coupon.discountValue) / 100
-      : coupon.discountValue;
-
-  if (coupon.maxDiscountCap && discountAmount > coupon.maxDiscountCap)
-    discountAmount = coupon.maxDiscountCap;
-
-  res.json({
-    code: coupon.code,
-    discountAmount: Math.round(discountAmount * 100) / 100,
-  });
-};

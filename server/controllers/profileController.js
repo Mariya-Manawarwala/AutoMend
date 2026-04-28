@@ -57,3 +57,13 @@ export const getUserById = async (req, res) => {
   }
   res.json(user);
 };
+
+export const deleteAccount = async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  await user.deleteOne();
+  res.json({ message: "Account deleted successfully" });
+};

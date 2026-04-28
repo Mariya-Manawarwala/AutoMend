@@ -54,3 +54,16 @@ export const forCustomer = (req, res, next) => {
     throw new Error("Not authorized as customer");
   }
 };
+
+export const forApprovedMechanic = (req, res, next) => {
+  if (req.user && req.user.role === "mechanic") {
+    if (req.user.status !== "approved") {
+      res.status(403);
+      throw new Error("Your account is not approved yet");
+    }
+    next();
+  } else {
+    res.status(403);
+    throw new Error("Not authorized as mechanic");
+  }
+};

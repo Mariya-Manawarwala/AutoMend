@@ -4,7 +4,9 @@ import Service from "../models/Service.js";
 import Part from "../models/Part.js";
 import Coupon from "../models/Coupon.js";
 import Notification from "../models/Notification.js";
-import User from "../models/User.js";
+import Payment from "../models/Payment.js";
+import { generateInvoicePDF } from "../utils/invoiceGenerator.js";
+import { sendInvoiceEmail } from "../utils/emailService.js";
 
 export const getJobByRequestId = async (req, res) => {
   const job = await RepairJob.findOne({ requestId: req.params.requestId })
@@ -19,125 +21,180 @@ export const getJobByRequestId = async (req, res) => {
   res.json(job);
 };
 
-export const addServices = async (req, res) => {
+export const updateJob = async (req, res) => {
   const job = await RepairJob.findById(req.params.id);
   if (!job || job.mechanicId.toString() !== req.user._id.toString()) {
     res.status(400);
     throw new Error("Invalid job or unauthorized");
   }
 
-  const { serviceIds } = req.body;
-  if (!serviceIds) {
-    res.status(400);
-    throw new Error("Provide service IDs");
+  const { servicesUsed, partsUsed } = req.body;
+
+  if (servicesUsed) {
+    const serviceIds = servicesUsed.map((service) => service.serviceId);
+    const services = await Service.find({
+      _id: { $in: serviceIds },
+      isActive: true,
+    });
+    job.servicesUsed = services.map((service) => ({
+      serviceId: service._id,
+      name: service.name,
+      price: service.basePrice,
+    }));
   }
 
-  const services = await Service.find({
-    _id: { $in: serviceIds },
-    isActive: true,
-  });
-  job.servicesUsed = services.map((s) => ({
-    serviceId: s._id,
-    name: s.name,
-    price: s.price,
-  }));
+  if (partsUsed) {
+    const partIds = partsUsed.map((part) => part.partId);
+    const dbParts = await Part.find({ _id: { $in: partIds }, isActive: true });
+    job.partsUsed = dbParts.map((dbPart) => {
+      const inputPart = partsUsed.find(
+        (part) => part.partId.toString() === dbPart._id.toString(),
+      );
+      return {
+        partId: dbPart._id,
+        name: dbPart.name,
+        price: dbPart.unitPrice,
+        quantity: inputPart?.quantity || 1,
+      };
+    });
+  }
+
   await job.save();
   res.json(job);
 };
 
-export const addParts = async (req, res) => {
+export const applyCouponToJob = async (req, res) => {
+  const { code } = req.body;
+  if (!code) {
+    res.status(400);
+    throw new Error("Coupon code is required");
+  }
+
   const job = await RepairJob.findById(req.params.id);
-  if (!job || job.mechanicId.toString() !== req.user._id.toString()) {
+  if (!job || job.customerId.toString() !== req.user._id.toString()) {
     res.status(400);
     throw new Error("Invalid job or unauthorized");
   }
 
-  const { parts } = req.body;
-  if (!parts) {
+  if (job.subtotal <= 0) {
     res.status(400);
-    throw new Error("Provide parts");
+    throw new Error("Apply coupon after the bill is generated");
   }
 
-  const partIds = parts.map((p) => p.partId);
-  const dbParts = await Part.find({ _id: { $in: partIds }, isActive: true });
-
-  job.partsUsed = dbParts.map((dbP) => {
-    const input = parts.find((p) => p.partId === dbP._id.toString());
-    return {
-      partId: dbP._id,
-      name: dbP.name,
-      price: dbP.price,
-      quantity: input?.quantity || 1,
-    };
+  const coupon = await Coupon.findOne({
+    code: code.toUpperCase(),
+    isActive: true,
+    expiresAt: { $gt: new Date() },
   });
+
+  if (!coupon || coupon.usedCount >= coupon.usageLimit) {
+    res.status(400);
+    throw new Error("Coupon invalid, expired, or limit reached");
+  }
+
+  if (job.subtotal < coupon.minOrderValue) {
+    res.status(400);
+    throw new Error("Minimum order value not met for this coupon");
+  }
+
+  let discountAmount = 0;
+  if (coupon.discountType.toLowerCase() === "percentage") {
+    discountAmount = (job.subtotal * coupon.discountValue) / 100;
+    if (coupon.maxDiscountCap && discountAmount > coupon.maxDiscountCap) {
+      discountAmount = coupon.maxDiscountCap;
+    }
+  } else {
+    discountAmount = coupon.discountValue;
+  }
+
+  job.couponCode = coupon.code;
+  job.discountAmount = discountAmount;
+  job.totalCost = job.subtotal - discountAmount;
   await job.save();
-  res.json(job);
+
+  res.json({
+    job,
+    discountAmount,
+    finalAmount: job.totalCost,
+  });
 };
 
 export const submitBill = async (req, res) => {
-  const job = await RepairJob.findById(req.params.id);
-  if (
-    !job ||
-    job.mechanicId.toString() !== req.user._id.toString() ||
-    job.jobStatus !== "InProgress"
-  ) {
+  const job = await RepairJob.findById(req.params.id)
+    .populate("mechanicId", "name email phone")
+    .populate("customerId", "name email phone address")
+    .populate("vehicleId", "make model year registrationNumber");
+
+  if (!job || job.mechanicId._id.toString() !== req.user._id.toString()) {
     res.status(400);
-    throw new Error("Invalid job, unauthorized, or not in progress");
+    throw new Error("Invalid job or unauthorized");
   }
 
-  const { laborCost, couponCode } = req.body;
-  if (laborCost !== undefined) job.laborCost = laborCost;
+  if (job.billSubmitted) {
+    res.status(400);
+    throw new Error("Bill already submitted for this job");
+  }
 
-  const servicesTotal = job.servicesUsed.reduce((sum, s) => sum + s.price, 0);
-  const partsTotal = job.partsUsed.reduce(
-    (sum, p) => sum + p.price * p.quantity,
+  if (job.jobStatus !== "InProgress") {
+    res.status(400);
+    throw new Error("Job is not ready for billing");
+  }
+
+  const servicesTotal = job.servicesUsed.reduce(
+    (sum, s) => sum + (s.price || 0),
     0,
   );
-  job.subtotal = servicesTotal + partsTotal + job.laborCost;
+  const partsTotal = job.partsUsed.reduce(
+    (sum, p) => sum + (p.price || 0) * (p.quantity || 1),
+    0,
+  );
 
-  let discount = 0;
-  if (couponCode) {
-    const coupon = await Coupon.findOne({
-      code: couponCode.toUpperCase(),
-      isActive: true,
-      expiresAt: { $gt: new Date() },
-    });
-    if (
-      coupon &&
-      coupon.usedCount < coupon.usageLimit &&
-      job.subtotal >= coupon.minOrderValue
-    ) {
-      if (coupon.discountType === "Percentage") {
-        discount = (job.subtotal * coupon.discountValue) / 100;
-        if (coupon.maxDiscountCap && discount > coupon.maxDiscountCap)
-          discount = coupon.maxDiscountCap;
-      } else {
-        discount = coupon.discountValue;
-      }
-      coupon.usedCount += 1;
-      await coupon.save();
-      job.couponCode = coupon.code;
-    }
+  if (servicesTotal + partsTotal === 0) {
+    res.status(400);
+    throw new Error("Please add services and parts before submitting the bill");
   }
 
-  job.discountAmount = discount;
-  job.totalCost = job.subtotal - discount;
-  job.jobStatus = "BillSubmitted";
+  job.subtotal = servicesTotal + partsTotal;
+  job.totalCost = job.subtotal - (job.discountAmount || 0);
+  job.jobStatus = "PaymentPending";
+  job.billSubmitted = true;
+  job.completedAt = new Date();
   await job.save();
 
-  await RepairRequest.findByIdAndUpdate(job.requestId, {
-    status: "WaitingForAdminReview",
+  // Create Payment record
+  const payment = await Payment.create({
+    jobId: job._id,
+    requestId: job.requestId,
+    customerId: job.customerId._id,
+    mechanicId: job.mechanicId._id,
+    amount: job.totalCost,
+    paymentMethod: "Online",
+    paymentStatus: "Pending",
   });
 
-  const admins = await User.find({ role: "admin" });
-  const notifs = admins.map((a) => ({
-    userId: a._id,
-    message: `Mechanic submitted bill for ₹${job.totalCost}`,
-    type: "bill_submitted",
-  }));
-  if (notifs.length) await Notification.insertMany(notifs);
+  // Generate invoice PDF
+  const invoicePDF = await generateInvoicePDF(job, payment);
 
-  res.json(job);
+  // Send invoice email
+  await sendInvoiceEmail(job.customerId.email, job, payment, invoicePDF);
+
+  // Create in-app notification
+  await Notification.create({
+    userId: job.customerId._id,
+    message: `Your bill has been generated. Amount to pay: ₹${job.totalCost}. Please proceed to payment.`,
+    type: "bill_generated",
+  });
+
+  await RepairRequest.findByIdAndUpdate(job.requestId, {
+    status: "Completed",
+  });
+
+  res.json({
+    success: true,
+    job,
+    payment,
+    message: "Bill submitted successfully. Invoice sent to customer.",
+  });
 };
 
 export const getAllJobs = async (req, res) => {
@@ -148,33 +205,4 @@ export const getAllJobs = async (req, res) => {
     .populate("vehicleId")
     .sort({ createdAt: -1 });
   res.json(jobs);
-};
-
-export const approveCost = async (req, res) => {
-  const { adminApprovedCost } = req.body;
-  const job = await RepairJob.findById(req.params.id);
-  if (!job || job.jobStatus !== "BillSubmitted") {
-    res.status(400);
-    throw new Error("Invalid job or not ready for approval");
-  }
-
-  job.adminApprovedCost =
-    adminApprovedCost !== undefined ? adminApprovedCost : job.totalCost;
-  job.jobStatus = "PaymentPending";
-  await job.save();
-
-  await RepairRequest.findByIdAndUpdate(job.requestId, { status: "Approved" });
-
-  await Notification.insertMany([
-    {
-      userId: job.mechanicId,
-      message: `Bill approved for ₹${job.adminApprovedCost}`,
-    },
-    {
-      userId: job.customerId,
-      message: `Bill approved. Amount to pay: ₹${job.adminApprovedCost}`,
-    },
-  ]);
-
-  res.json(job);
 };

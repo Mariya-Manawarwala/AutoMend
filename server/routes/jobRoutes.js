@@ -1,26 +1,24 @@
 import express from "express";
 import {
   getJobByRequestId,
-  addServices,
-  addParts,
+  updateJob,
   submitBill,
+  applyCouponToJob,
   getAllJobs,
-  approveCost,
 } from "../controllers/jobController.js";
 import {
   protect,
-  forMechanic,
+  forApprovedMechanic,
+  forCustomer,
   forAdmin,
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/:requestId", protect, forMechanic, getJobByRequestId);
-router.put("/:id/add-services", protect, forMechanic, addServices);
-router.put("/:id/add-parts", protect, forMechanic, addParts);
-router.put("/:id/submit-bill", protect, forMechanic, submitBill);
-
 router.get("/admin/all", protect, forAdmin, getAllJobs);
-router.put("/admin/:id/approve-cost", protect, forAdmin, approveCost);
+router.get("/:requestId", protect, forApprovedMechanic, getJobByRequestId);
+router.patch("/:id", protect, forApprovedMechanic, updateJob);
+router.put("/:id/submit-bill", protect, forApprovedMechanic, submitBill);
+router.post("/:id/apply-coupon", protect, forCustomer, applyCouponToJob);
 
 export default router;

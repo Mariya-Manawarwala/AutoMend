@@ -1,123 +1,94 @@
-import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PublicLayout from "./layouts/PublicLayout";
-import DashboardLayout from "./layouts/DashboardLayout";
+import { useState, useEffect, lazy, Suspense } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
+import FloatingActionButton from './components/FloatingActionButton'
+import LoadingScreen from './components/LoadingScreen'
 
-// Public Pages
-import Homepage from "./pages/public/Homepage";
-import ServicesPage from "./pages/public/ServicesPage";
-import FleetPage from "./pages/public/FleetPage";
-import AboutPage from "./pages/public/AboutPage";
-import ContactPage from "./pages/public/ContactPage";
-import BlogPage from "./pages/public/BlogPage";
-import BlogPost from "./pages/public/BlogPost";
+const Home = lazy(() => import('./pages/Home'))
+const Services = lazy(() => import('./pages/Services'))
+const Mechanics = lazy(() => import('./pages/Mechanics'))
+const About = lazy(() => import('./pages/About'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const CustomerDashboard = lazy(() => import('./pages/CustomerDashboard'))
+const MechanicDashboard = lazy(() => import('./pages/GarageDashboard'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const BookingFlow = lazy(() => import('./pages/BookingFlow'))
+const AIChatAssistant = lazy(() => import('./pages/AIChatAssistant'))
 
-// Auth
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import ForgotPassword from "./pages/auth/ForgotPassword";
+const PAGE_VARIANTS = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+}
 
-// Customer
-import CustomerDashboard from "./pages/customer/Dashboard";
-import CustomerProfile from "./pages/customer/Profile";
-import MyVehicles from "./pages/customer/MyVehicles";
-import AddVehicle from "./pages/customer/AddVehicle";
-import CreateRequest from "./pages/customer/CreateRequest";
-import MyRequests from "./pages/customer/MyRequests";
-import RequestDetails from "./pages/customer/RequestDetails";
-import ServiceHistory from "./pages/customer/ServiceHistory";
-import AddReview from "./pages/customer/AddReview";
-import ReviewsList from "./pages/customer/ReviewsList";
-import ChatSupport from "./pages/customer/ChatSupport";
-import CustomerSettings from "./pages/customer/Settings";
+function PageWrapper({ children }) {
+  return (
+    <motion.div variants={PAGE_VARIANTS} initial="initial" animate="animate" exit="exit">
+      {children}
+    </motion.div>
+  )
+}
 
-// Mechanic
-import MechanicDashboard from "./pages/mechanic/Dashboard";
-import MechanicProfile from "./pages/mechanic/Profile";
-import AssignedJobs from "./pages/mechanic/AssignedJobs";
-import JobDetails from "./pages/mechanic/JobDetails";
-import UpdateJobStatus from "./pages/mechanic/UpdateJobStatus";
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-deep-black flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+        <p className="text-text-muted text-sm font-body">Loading...</p>
+      </div>
+    </div>
+  )
+}
 
-// Admin
-import AdminDashboard from "./pages/admin/Dashboard";
-import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard";
-import ManageMechanics from "./pages/admin/ManageMechanics";
-import ManageServices from "./pages/admin/ManageServices";
-import ManageParts from "./pages/admin/ManageParts";
-import ManageRequests from "./pages/admin/ManageRequests";
-import ManageCoupons from "./pages/admin/ManageCoupons";
-import PaymentManagement from "./pages/admin/PaymentManagement";
-import InvoiceGeneration from "./pages/admin/InvoiceGeneration";
-import UserManagement from "./pages/admin/UserManagement";
-import Reports from "./pages/admin/Reports";
-import AdminSettings from "./pages/admin/Settings";
-
-// Shared
-import NotFound from "./pages/shared/NotFound";
-import Unauthorized from "./pages/shared/Unauthorized";
+const HIDE_LAYOUT = ['/login', '/register', '/dashboard', '/ai-assistant']
 
 export default function App() {
+  const [loading, setLoading] = useState(true)
+  const location = useLocation()
+  const hideLayout = HIDE_LAYOUT.some(path => location.pathname.startsWith(path))
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 3000)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes with PublicLayout (Navbar + Footer) */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/fleet" element={<FleetPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-        </Route>
+    <div className="min-h-screen bg-deep-black text-white font-body">
+      <AnimatePresence mode="wait">
+        {loading && <LoadingScreen key="loader" onComplete={() => setLoading(false)} />}
+      </AnimatePresence>
 
-        {/* Auth Routes (no layout) */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+      {!loading && (
+        <>
+          {!hideLayout && <Navbar />}
 
-        {/* Dashboard Layout Routes */}
-        <Route element={<DashboardLayout />}>
-          {/* Customer Routes */}
-          <Route path="/dashboard" element={<CustomerDashboard />} />
-          <Route path="/profile" element={<CustomerProfile />} />
-          <Route path="/vehicles" element={<MyVehicles />} />
-          <Route path="/vehicles/add" element={<AddVehicle />} />
-          <Route path="/requests/create" element={<CreateRequest />} />
-          <Route path="/requests" element={<MyRequests />} />
-          <Route path="/requests/:id" element={<RequestDetails />} />
-          <Route path="/history" element={<ServiceHistory />} />
-          <Route path="/reviews/add" element={<AddReview />} />
-          <Route path="/reviews" element={<ReviewsList />} />
-          <Route path="/chat" element={<ChatSupport />} />
-          <Route path="/settings/*" element={<CustomerSettings />} />
+          <Suspense fallback={<PageLoader />}>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+                <Route path="/services" element={<PageWrapper><Services /></PageWrapper>} />
+                <Route path="/mechanics" element={<PageWrapper><Mechanics /></PageWrapper>} />
+                <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
+                <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+                <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+                
+                <Route path="/dashboard/customer" element={<PageWrapper><CustomerDashboard /></PageWrapper>} />
+                <Route path="/dashboard/mechanic" element={<PageWrapper><MechanicDashboard /></PageWrapper>} />
+                <Route path="/dashboard/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
 
-          {/* Mechanic Routes */}
-          <Route path="/mechanic" element={<MechanicDashboard />} />
-          <Route path="/mechanic/profile" element={<MechanicProfile />} />
-          <Route path="/mechanic/jobs" element={<AssignedJobs />} />
-          <Route path="/mechanic/jobs/:id" element={<JobDetails />} />
-          <Route path="/mechanic/jobs/:id/update" element={<UpdateJobStatus />} />
+                <Route path="/booking" element={<PageWrapper><BookingFlow /></PageWrapper>} />
+                <Route path="/ai-assistant" element={<PageWrapper><AIChatAssistant /></PageWrapper>} />
+              </Routes>
+            </AnimatePresence>
+          </Suspense>
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
-          <Route path="/admin/mechanics" element={<ManageMechanics />} />
-          <Route path="/admin/services" element={<ManageServices />} />
-          <Route path="/admin/parts" element={<ManageParts />} />
-          <Route path="/admin/requests" element={<ManageRequests />} />
-          <Route path="/admin/coupons" element={<ManageCoupons />} />
-          <Route path="/admin/payments" element={<PaymentManagement />} />
-          <Route path="/admin/invoices" element={<InvoiceGeneration />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/reports" element={<Reports />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-        </Route>
-
-        {/* Error Routes */}
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
-  );
+          {!hideLayout && <Footer />}
+          {!hideLayout && <FloatingActionButton />}
+        </>
+      )}
+    </div>
+  )
 }

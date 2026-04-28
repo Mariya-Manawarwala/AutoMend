@@ -25,6 +25,7 @@ const paymentSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     paymentMethod: { type: String, required: true },
     paymentStatus: { type: String, default: "Pending" },
+    orderId: String,
     mechanicConfirmedAt: Date,
     paidAt: Date,
     note: String,

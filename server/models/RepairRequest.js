@@ -7,18 +7,32 @@ const repairRequestSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    vehicleId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vehicle",
-      required: true,
+    vehicle: {
+      brand: { type: String, required: true },
+      model: { type: String, required: true },
+      image: String,
     },
-    problemDescription: { type: String, required: true },
+    description: { type: String, required: true },
+    serviceIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service",
+      },
+    ],
     serviceType: {
       type: String,
-      enum: ["HomeService", "GarageVisit"],
       required: true,
     },
-    customerAddress: String,
+    location: {
+      address: String,
+      lat: Number,
+      lng: Number,
+    },
+    scheduledDate: Date,
+    priority: {
+      type: String,
+      default: "normal",
+    },
     status: { type: String, default: "Pending" },
     assignedMechanicId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +40,7 @@ const repairRequestSchema = new mongoose.Schema(
       default: null,
     },
     acceptedAt: Date,
+    estimatedCost: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

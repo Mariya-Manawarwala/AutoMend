@@ -20,7 +20,6 @@ const repairJobSchema = new mongoose.Schema(
     vehicleId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vehicle",
-      required: true,
     },
     servicesUsed: [
       {
@@ -46,6 +45,8 @@ const repairJobSchema = new mongoose.Schema(
     jobStatus: { type: String, default: "InProgress" },
     startedAt: { type: Date, default: Date.now },
     completedAt: Date,
+    billSubmitted: { type: Boolean, default: false },
+    invoiceUrl: String,
   },
   { timestamps: true },
 );
