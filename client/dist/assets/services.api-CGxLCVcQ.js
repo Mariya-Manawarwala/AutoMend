@@ -1,1 +1,0 @@
-import{Gt as e}from"./index-KPg_rnoB.js";var t=async()=>(await e.get(`/services`)).data,n=async t=>(await e.post(`/services`,t)).data,r=async(t,n)=>(await e.put(`/services/${t}`,n)).data,i=async t=>(await e.delete(`/services/${t}`)).data;export{r as i,i as n,t as r,n as t};
