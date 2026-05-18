@@ -16,7 +16,7 @@
     "vehicle",
     "management"
   ],
-  "author": "",
+  "author": "Mariya Manawarwala",
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
