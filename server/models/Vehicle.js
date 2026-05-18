@@ -12,6 +12,7 @@ const vehicleSchema = new mongoose.Schema(
     numberPlate: { type: String, required: true, unique: true },
     fuelType: { type: String, required: true },
     yearBought: { type: Number, required: true },
+    image: { type: String },
   },
   { timestamps: true },
 );

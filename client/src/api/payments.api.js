@@ -1,16 +1,33 @@
-import axios from '../lib/axios';
+import api from '../lib/axios';
 
-export const createOrder = async (orderData) => {
-  const response = await axios.post('/payments/create-order', orderData);
+export const createPaymentOrder = async (data) => {
+  const response = await api.post('/payments/create-order', data);
   return response.data;
 };
 
 export const verifyPayment = async (paymentData) => {
-  const response = await axios.post('/payments/verify', paymentData);
+  const response = await api.post('/payments/verify', paymentData);
   return response.data;
 };
 
-export const getMechanicEarnings = async (month, year) => {
-  const response = await axios.get(`/payments/mechanic?month=${month}&year=${year}`);
+export const getMyPayments = async () => {
+  const response = await api.get('/payments/my');
+  return response.data;
+};
+
+export const getPaymentBreakdown = async (id) => {
+  const response = await api.get(`/payments/${id}/breakdown`);
+  return response.data;
+};
+
+export const downloadInvoice = async (id) => {
+  const response = await api.get(`/payments/${id}/invoice`, {
+    responseType: 'blob',
+  });
+  return response.data;
+};
+
+export const getAllPayments = async () => {
+  const response = await api.get('/payments/admin/all');
   return response.data;
 };

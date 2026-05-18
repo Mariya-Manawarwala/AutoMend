@@ -1,15 +1,17 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import FloatingActionButton from './components/FloatingActionButton'
 import LoadingScreen from './components/LoadingScreen'
+import { ProtectedRoute, RoleBasedRoute } from './components/ProtectedRoute'
 
 const Home = lazy(() => import('./pages/Home'))
 const Services = lazy(() => import('./pages/Services'))
 const Mechanics = lazy(() => import('./pages/Mechanics'))
-const About = lazy(() => import('./pages/About'))
+const AboutContact = lazy(() => import('./pages/AboutContact'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const CustomerDashboard = lazy(() => import('./pages/CustomerDashboard'))
@@ -17,6 +19,7 @@ const MechanicDashboard = lazy(() => import('./pages/GarageDashboard'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const BookingFlow = lazy(() => import('./pages/BookingFlow'))
 const AIChatAssistant = lazy(() => import('./pages/AIChatAssistant'))
+const MechanicProfile = lazy(() => import('./pages/MechanicProfile'))
 
 const PAGE_VARIANTS = {
   initial: { opacity: 0, y: 20 },
@@ -45,6 +48,13 @@ function PageLoader() {
 
 const HIDE_LAYOUT = ['/login', '/register', '/dashboard', '/ai-assistant']
 
+const DashboardRedirect = () => {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return <PageLoader />
+  if (!user) return <Navigate to="/login" replace />
+  return <Navigate to={`/dashboard/${user.role}`} replace />
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true)
   const location = useLocation()
@@ -71,16 +81,48 @@ export default function App() {
                 <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
                 <Route path="/services" element={<PageWrapper><Services /></PageWrapper>} />
                 <Route path="/mechanics" element={<PageWrapper><Mechanics /></PageWrapper>} />
-                <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
+                <Route path="/about" element={<PageWrapper><AboutContact /></PageWrapper>} />
                 <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
                 <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
                 
-                <Route path="/dashboard/customer" element={<PageWrapper><CustomerDashboard /></PageWrapper>} />
-                <Route path="/dashboard/mechanic" element={<PageWrapper><MechanicDashboard /></PageWrapper>} />
-                <Route path="/dashboard/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
+                <Route path="/dashboard" element={<DashboardRedirect />} />
+                <Route 
+                  path="/dashboard/customer/*" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['customer']}>
+                        <PageWrapper><CustomerDashboard /></PageWrapper>
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
 
-                <Route path="/booking" element={<PageWrapper><BookingFlow /></PageWrapper>} />
+                <Route 
+                  path="/dashboard/mechanic/*" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['mechanic']}>
+                        <PageWrapper><MechanicDashboard /></PageWrapper>
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route 
+                  path="/dashboard/admin/*" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['admin']}>
+                        <PageWrapper><AdminDashboard /></PageWrapper>
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route path="/booking" element={<ProtectedRoute><PageWrapper><BookingFlow /></PageWrapper></ProtectedRoute>} />
+                <Route path="/contact" element={<PageWrapper><AboutContact /></PageWrapper>} />
                 <Route path="/ai-assistant" element={<PageWrapper><AIChatAssistant /></PageWrapper>} />
+                <Route path="/mechanic/:id" element={<PageWrapper><MechanicProfile /></PageWrapper>} />
               </Routes>
             </AnimatePresence>
           </Suspense>

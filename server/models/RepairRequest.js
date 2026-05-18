@@ -19,6 +19,12 @@ const repairRequestSchema = new mongoose.Schema(
         ref: "Service",
       },
     ],
+    partIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Part",
+      },
+    ],
     serviceType: {
       type: String,
       required: true,

@@ -1,12 +1,11 @@
-import { FaTools, FaOilCan, FaCar, FaBatteryFull, FaExclamationTriangle, FaCogs, FaWrench } from 'react-icons/fa'
+import { FaTools, FaOilCan, FaCar, FaBatteryFull, FaExclamationTriangle, FaCogs, FaWrench, FaSearch } from 'react-icons/fa'
 
 export const SERVICES = [
-  { id: 1, title: 'Engine Repair', price: '$299', desc: 'Complete engine diagnostics, rebuild & performance tuning by certified experts.', icon: FaCogs, gradient: 'from-orange-500/20 to-gold/20' },
-  { id: 2, title: 'Oil Change', price: '$49', desc: 'Premium synthetic oil change with multi-point inspection included.', icon: FaOilCan, gradient: 'from-gold/20 to-yellow-500/20' },
-  { id: 3, title: 'Tire Service', price: '$89', desc: 'Alignment, balancing, rotation & replacement with top-tier brands.', icon: FaCar, gradient: 'from-amber-500/20 to-gold/20' },
-  { id: 4, title: 'Battery Replacement', price: '$129', desc: 'Quick battery testing & replacement with warranty-backed products.', icon: FaBatteryFull, gradient: 'from-yellow-600/20 to-gold/20' },
-  { id: 5, title: 'Brake Service', price: '$149', desc: 'Brake pad replacement, rotor resurfacing & fluid flush.', icon: FaWrench, gradient: 'from-orange-600/20 to-gold/20' },
-  { id: 6, title: 'Emergency Breakdown', price: '$99', desc: '24/7 roadside assistance & emergency towing to our premium facility.', icon: FaExclamationTriangle, gradient: 'from-red-500/20 to-gold/20' },
+  { id: 1, title: 'Engine Tuning', price: '$299', desc: 'Performance optimization and rebuilds.', icon: FaCogs, image: '/images/engine.png' },
+  { id: 2, title: 'Oil Systems', price: '$49', desc: 'Premium fluid exchange and monitoring.', icon: FaOilCan, image: '/images/oil.png' },
+  { id: 3, title: 'Wheel Service', price: '$89', desc: 'Precision alignment and replacement.', icon: FaCar, image: '/images/wheel.png' },
+  { id: 4, title: 'Brake Precision', price: '$149', desc: 'Ceramic disc and pad replacement.', icon: FaWrench, image: '/images/brake.png' },
+  { id: 5, title: 'Digital Scan', price: '$99', desc: 'Full electronic systems diagnostics.', icon: FaSearch, image: '/images/diagnostics.png' },
 ]
 
 export const MECHANICS = [

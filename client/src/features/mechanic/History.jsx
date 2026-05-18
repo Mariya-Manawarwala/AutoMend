@@ -1,54 +1,122 @@
 import { motion } from 'framer-motion'
-import { FaCheckCircle, FaCar } from 'react-icons/fa'
-
-const COMPLETED_JOBS = [
-  { id: 'REQ-1022', vehicle: '2021 Porsche Macan', service: 'Full Synthetic Oil Change', date: 'May 18, 2026', revenue: '₹4,299', rating: 5 },
-  { id: 'REQ-1015', vehicle: '2019 Audi A6', service: 'Brake Pad Replacement', date: 'May 14, 2026', revenue: '₹12,500', rating: 4.8 },
-  { id: 'REQ-1008', vehicle: '2022 Honda City', service: 'AC Gas Refill', date: 'May 05, 2026', revenue: '₹3,200', rating: 5 },
-]
+import { FaCheckCircle, FaCar, FaReceipt, FaClock, FaArrowUp } from 'react-icons/fa'
+import { useMechanicEarnings } from '../../hooks/useJobHooks'
 
 export default function History() {
-  return (
-    <div className="max-w-5xl space-y-6 pb-10">
-      
-      <div className="bg-card/80 backdrop-blur-md rounded-3xl p-6 border border-white/5 shadow-lg overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[700px]">
-          <thead>
-            <tr className="border-b border-white/10 text-sm text-text-muted">
-              <th className="pb-4 pl-4 font-semibold">Job ID & Vehicle</th>
-              <th className="pb-4 font-semibold">Service Performed</th>
-              <th className="pb-4 font-semibold">Date Completed</th>
-              <th className="pb-4 font-semibold">Revenue</th>
-              <th className="pb-4 pr-4 font-semibold text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPLETED_JOBS.map((job, i) => (
-              <motion.tr key={job.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group">
-                <td className="py-4 pl-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-soft-dark border border-white/10 flex items-center justify-center text-text-muted group-hover:text-gold transition-colors"><FaCar /></div>
-                    <div>
-                      <p className="text-sm font-bold text-white">{job.vehicle}</p>
-                      <p className="text-xs text-gold">{job.id}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-4 text-sm text-text-muted">{job.service}</td>
-                <td className="py-4 text-sm text-text-muted">{job.date}</td>
-                <td className="py-4 text-sm font-bold text-emerald-400">{job.revenue}</td>
-                <td className="py-4 pr-4 text-right">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
-                    <FaCheckCircle /> Cleared
-                  </span>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const { data, isLoading } = useMechanicEarnings()
+  const history = data?.history || []
 
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl space-y-4 pb-10">
+        <div className="h-12 skeleton rounded-xl w-48" />
+        <div className="h-[500px] skeleton rounded-2xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-5xl space-y-8 pb-10">
+
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <p className="text-label text-text-muted mb-1">Mechanic Records</p>
+        <h2 className="font-display text-4xl text-white font-300">
+          Service<span className="text-gradient-gold italic"> History</span>
+        </h2>
+      </motion.div>
+
+      {/* Table card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5, ease: [0.22,1,0.36,1] }}
+        className="card rounded-2xl overflow-hidden"
+      >
+        {history.length === 0 ? (
+          <div className="py-24 text-center">
+            <div className="w-16 h-16 card rounded-full flex items-center justify-center mx-auto mb-5">
+              <FaReceipt className="text-2xl text-white/10" />
+            </div>
+            <p className="font-display text-2xl text-white/40 mb-2">No history yet</p>
+            <p className="text-label text-text-muted">Your completed jobs will appear here after you finish your first assignment.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left min-w-[800px]">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-6 py-4 text-label text-text-muted font-700">Vehicle</th>
+                  <th className="px-6 py-4 text-label text-text-muted font-700">Description</th>
+                  <th className="px-6 py-4 text-label text-text-muted font-700">Completed</th>
+                  <th className="px-6 py-4 text-label text-text-muted font-700 text-right">Earned</th>
+                  <th className="px-6 py-4 text-label text-text-muted font-700 text-right">Payout</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {history.map((job, i) => (
+                  <motion.tr
+                    key={job.id}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * i, duration: 0.35 }}
+                    className="group hover:bg-white/2 transition-colors"
+                  >
+                    {/* Vehicle */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-text-muted group-hover:text-champagne group-hover:border-champagne/25 transition-all">
+                          <FaCar className="text-sm" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-600 text-white group-hover:text-champagne transition-colors">
+                            {job.vehicle}
+                          </p>
+                          <p className="text-label text-champagne">
+                            REQ-{job.requestId?.toString().slice(-6).toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Description */}
+                    <td className="px-6 py-4 max-w-[220px]">
+                      <p className="text-sm text-text-muted italic truncate">
+                        "{job.description || 'Service completed'}"
+                      </p>
+                    </td>
+
+                    {/* Date */}
+                    <td className="px-6 py-4">
+                      <p className="text-label text-text-muted">
+                        {new Date(job.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                    </td>
+
+                    {/* Earned */}
+                    <td className="px-6 py-4 text-right">
+                      <p className="font-heading font-700 text-white text-base">
+                        ₹{job.total?.toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-label text-sage">Total</p>
+                    </td>
+
+                    {/* Payout status */}
+                    <td className="px-6 py-4 text-right">
+                      <span className={`badge ${job.payoutStatus === 'Released' ? 'badge-green' : 'badge-gold'}`}>
+                        {job.payoutStatus === 'Released'
+                          ? <><FaCheckCircle className="text-[9px]" /> Released</>
+                          : <><FaClock className="text-[9px]" /> Pending</>
+                        }
+                      </span>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
     </div>
   )
 }

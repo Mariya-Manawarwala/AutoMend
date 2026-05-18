@@ -1,27 +1,42 @@
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { createOrder, verifyPayment, getMechanicEarnings } from '../api/payments.api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createPaymentOrder, verifyPayment, getMyPayments, getPaymentBreakdown, getAllPayments } from '../api/payments.api';
+
+export const useMyPayments = () => {
+  return useQuery({
+    queryKey: ['payments'],
+    queryFn: getMyPayments,
+  });
+};
+
+export const usePaymentBreakdown = (id) => {
+  return useQuery({
+    queryKey: ['payment-breakdown', id],
+    queryFn: () => getPaymentBreakdown(id),
+    enabled: !!id,
+  });
+};
 
 export const useCreateOrder = () => {
   return useMutation({
-    mutationFn: createOrder,
-  })
-}
+    mutationFn: createPaymentOrder,
+  });
+};
 
 export const useVerifyPayment = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: verifyPayment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['job'] })
-      queryClient.invalidateQueries({ queryKey: ['requests'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },
-  })
-}
+  });
+};
 
-export const useMechanicEarnings = (month, year) => {
+export const useAdminPayments = () => {
   return useQuery({
-    queryKey: ['earnings', month, year],
-    queryFn: () => getMechanicEarnings(month, year),
-    enabled: !!month && !!year,
-  })
-}
+    queryKey: ['admin', 'payments'],
+    queryFn: getAllPayments,
+  });
+};

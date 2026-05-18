@@ -1,18 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaStar, FaPlus, FaTimes, FaUserCircle } from 'react-icons/fa'
+import { FaStar, FaPlus, FaTimes, FaUserCircle, FaTrash } from 'react-icons/fa'
 import { useToast } from '../../context/ToastContext'
-
-const MOCK_REVIEWS = [
-  { id: 1, type: 'garage', rating: 5, date: 'May 20, 2026', text: 'Excellent service. They picked up my car on time and returned it perfectly clean. Highly recommend AutoMend Garage!' },
-  { id: 2, type: 'mechanic', mechanic: 'James Rodriguez', rating: 4.8, date: 'May 10, 2026', text: 'James was very professional and explained the engine issue clearly before proceeding with repairs.' },
-]
+import axios from 'axios'
 
 export default function Reviews() {
   const { addToast } = useToast()
   const [tab, setTab] = useState('garage')
+  const [reviewsList, setReviewsList] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ garageRating: 0, garageReview: '', mechanicRating: 0, mechanicReview: '' })
+
+  const activeUser = JSON.parse(localStorage.getItem('user') || '{}')
+
+  const handleDelete = async (reviewId) => {
+    if (!window.confirm(`Are you sure you want to delete your ${tab} review?`)) return
+    try {
+      const token = localStorage.getItem('token')
+      await axios.delete(`http://localhost:8080/api/reviews/${reviewId}?target=${tab}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      addToast(`Your ${tab} review has been deleted successfully.`, 'success')
+      // Refresh local reviews
+      const { data } = await axios.get('http://localhost:8080/api/reviews/garage')
+      setReviewsList(data.reviews || [])
+    } catch (err) {
+      addToast('Failed to delete review', 'error')
+    }
+  }
 
   const handleSubmit = () => {
     if (!form.garageRating) return addToast('Please provide at least a garage rating', 'error')
@@ -21,7 +37,45 @@ export default function Reviews() {
     setForm({ garageRating: 0, garageReview: '', mechanicRating: 0, mechanicReview: '' })
   }
 
-  const reviews = MOCK_REVIEWS.filter(r => r.type === tab)
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const { data } = await axios.get('http://localhost:8080/api/reviews/garage')
+        setReviewsList(data.reviews || [])
+      } catch (err) {
+        addToast('Failed to load platform reviews', 'error')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchReviews()
+  }, [])
+
+  const filtered = reviewsList
+    .map(r => {
+      if (tab === 'garage') {
+        return {
+          id: r._id,
+          customerId: r.customerId?._id || r.customerId,
+          title: 'AutoMend Garage',
+          subtitle: `Reviewed by ${r.customerId?.name || 'Customer'}`,
+          rating: r.garageRating,
+          text: r.garageComment || '',
+          date: new Date(r.createdAt).toLocaleDateString()
+        }
+      } else {
+        return {
+          id: r._id,
+          customerId: r.customerId?._id || r.customerId,
+          title: r.mechanicId?.name || 'Expert Mechanic',
+          subtitle: `Reviewed by ${r.customerId?.name || 'Customer'}`,
+          rating: r.mechanicRating,
+          text: r.mechanicComment || '',
+          date: new Date(r.createdAt).toLocaleDateString()
+        }
+      }
+    })
+    .filter(r => r.text.trim() !== '')
 
   return (
     <div className="max-w-4xl space-y-8 pb-10">
@@ -36,27 +90,45 @@ export default function Reviews() {
       </div>
 
       <div className="space-y-4">
-        {reviews.map((r, i) => (
-          <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-            className="bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-soft-dark border border-white/10 flex items-center justify-center text-text-muted"><FaUserCircle className="text-2xl" /></div>
-                <div>
-                  <p className="text-sm font-bold text-white">{r.type === 'garage' ? 'AutoMend Garage' : r.mechanic}</p>
-                  <div className="flex items-center gap-1 text-gold text-xs">
-                    {[...Array(5)].map((_, idx) => <FaStar key={idx} className={idx < Math.floor(r.rating) ? 'text-gold' : 'text-white/10'} />)}
-                    <span className="ml-1 text-white font-bold">{r.rating}</span>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+          </div>
+        ) : (
+          filtered.map((r, i) => (
+            <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+              className="bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-soft-dark border border-white/10 flex items-center justify-center text-text-muted"><FaUserCircle className="text-2xl" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{r.title}</p>
+                    <p className="text-[10px] text-text-muted font-bold tracking-wide">{r.subtitle}</p>
+                    <div className="flex items-center gap-1 text-gold text-xs mt-1">
+                      {[...Array(5)].map((_, idx) => <FaStar key={idx} className={idx < Math.floor(r.rating) ? 'text-gold' : 'text-white/10'} />)}
+                      <span className="ml-1 text-white font-bold">{r.rating}</span>
+                    </div>
                   </div>
                 </div>
+                <div className="flex items-center gap-4">
+                  <p className="text-xs text-text-muted">{r.date}</p>
+                  {r.customerId === activeUser?._id && (
+                    <button 
+                      onClick={() => handleDelete(r.id)}
+                      className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95"
+                      title="Delete My Review"
+                    >
+                      <FaTrash className="text-[10px]" /> Delete
+                    </button>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-text-muted">{r.date}</p>
-            </div>
-            <p className="text-sm text-text-muted leading-relaxed">{r.text}</p>
-          </motion.div>
-        ))}
+              <p className="text-sm text-text-gray italic leading-relaxed">"{r.text}"</p>
+            </motion.div>
+          ))
+        )}
 
-        {reviews.length === 0 && (
+        {!isLoading && filtered.length === 0 && (
           <div className="py-12 text-center text-text-muted">No reviews found for this category.</div>
         )}
       </div>

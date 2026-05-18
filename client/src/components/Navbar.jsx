@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaBars, FaTimes, FaCar } from 'react-icons/fa'
+import { FaBars, FaTimes, FaWrench } from 'react-icons/fa'
 import { IoSunny, IoMoon } from 'react-icons/io5'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { useSettings } from '../context/SettingsContext'
 
 const NAV_LINKS = [
-  { path: '/', label: 'Home' },
   { path: '/services', label: 'Services' },
   { path: '/mechanics', label: 'Mechanics' },
+  { path: '/booking', label: 'Booking' },
   { path: '/about', label: 'About' },
-  { path: '/ai-assistant', label: 'AI Assistant' },
+  { path: '/ai-assistant', label: 'AI' },
 ]
 
 export default function Navbar() {
@@ -20,6 +21,9 @@ export default function Navbar() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { settings } = useSettings()
+
+  const isHome = location.pathname === '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -28,91 +32,117 @@ export default function Navbar() {
   }, [])
   useEffect(() => { setMenuOpen(false) }, [location])
 
-  const dashboardPath = user?.role === 'admin' ? '/admin' : user?.role === 'garage' ? '/garage-dashboard' : '/dashboard'
+  const dashboardPath = user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'mechanic' ? '/dashboard/mechanic' : '/dashboard/customer'
+
+  const navBg = isHome && !scrolled ? 'rgba(255,255,255,0.45)' : 'var(--color-surface)'
+  const textColor = 'var(--color-text-main)'
+  const mutedColor = 'var(--color-text-muted)'
+  const borderColor = 'var(--color-border)'
+  const accentColor = 'var(--color-accent)'
+  const brandColor = 'var(--color-primary)'
 
   return (
-    <motion.nav initial={{ y: -100 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-        scrolled ? 'bg-deep-black/80 backdrop-blur-xl shadow-lg border-b border-white/10' : 'bg-transparent'
-      }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold to-light-gold flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(200,155,60,0.4)] transition-shadow">
-              <FaCar className="text-deep-black text-lg" />
-            </div>
-            <span className="text-xl font-heading font-bold text-white">Auto<span className="text-gold">Mend</span></span>
-          </Link>
+    <motion.nav
+      initial={{ y: -100, x: '-50%' }} animate={{ y: 0, x: '-50%' }} transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+      style={{
+        position: 'fixed', top: '1.5rem', left: '50%', zIndex: 100,
+        background: navBg,
+        backdropFilter: 'blur(20px)',
+        border: `1px solid var(--color-border)`,
+        borderRadius: '999px',
+        transition: 'all 0.4s ease',
+        boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
+        width: 'fit-content',
+        padding: '0 1rem',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', height: '64px', padding: '0 1.5rem' }}>
 
-          <div className="hidden md:flex items-center gap-2">
-            {NAV_LINKS.map(link => (
-              <Link key={link.path} to={link.path}
-                className={`relative px-4 py-2 text-sm font-medium font-body transition-colors rounded-lg ${
-                  location.pathname === link.path ? 'text-gold' : 'text-text-muted hover:text-white'
-                }`}>
-                {link.label}
-                {location.pathname === link.path && (
-                  <motion.div layoutId="nav-indicator" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gold rounded-full shadow-[0_0_8px_rgba(200,155,60,0.8)]"
-                    transition={{ type: 'spring', stiffness: 500, damping: 35 }} />
-                )}
-              </Link>
-            ))}
+        {/* Logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FaWrench style={{ color: 'var(--color-bg)', fontSize: '0.8rem' }} />
           </div>
+          <span style={{ fontWeight: 900, fontSize: '1rem', color: textColor, letterSpacing: '-0.02em', textTransform: 'uppercase' }} className="hide-mobile">
+            {settings.garageName.split(' ')[0]}<span style={{ color: accentColor }}>{settings.garageName.split(' ').slice(1).join(' ') || 'Mend'}</span>
+          </span>
+        </Link>
 
-          <div className="hidden md:flex items-center gap-3">
-            {user ? (
-              <>
-                <Link to={dashboardPath} className="px-4 py-2 text-sm font-medium font-body text-gold border border-gold/30 rounded-xl hover:bg-gold/10 transition-all">Dashboard</Link>
-                <button onClick={logout} className="px-5 py-2.5 text-sm font-semibold font-body text-deep-black bg-gradient-to-r from-gold to-light-gold rounded-xl hover:shadow-[0_0_20px_rgba(200,155,60,0.3)] transition-all">Logout</button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="px-4 py-2 text-sm font-medium font-body text-text-muted hover:text-white transition-colors">Login</Link>
-                <Link to="/register" className="px-5 py-2.5 text-sm font-semibold font-body text-deep-black bg-gradient-to-r from-gold to-light-gold rounded-xl hover:shadow-[0_0_20px_rgba(200,155,60,0.3)] transition-all">Register</Link>
-              </>
-            )}
-
-            {/* Theme Toggle Button */}
-            <button 
-              onClick={toggleTheme}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gold hover:bg-gold/10 transition-all ml-2"
-              title={theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
+        {/* Desktop links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} className="hide-mobile">
+          {NAV_LINKS.map(link => (
+            <Link
+              key={link.path}
+              to={link.path}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.6rem 1.2rem',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                color: location.pathname === link.path ? 'var(--color-text-main)' : mutedColor,
+                textDecoration: 'none',
+                transition: 'all 0.3s',
+                position: 'relative',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}
             >
-              {theme === 'dark' ? <IoSunny className="text-lg" /> : <IoMoon className="text-lg" />}
-            </button>
-          </div>
+              {link.label}
+              {location.pathname === link.path && (
+                <motion.span layoutId="nav-glow"
+                  style={{ 
+                    position: 'absolute', top: '-2px', left: '50%', transform: 'translateX(-50%)', 
+                    width: '40px', height: '3px', background: 'var(--color-accent)', borderRadius: '0 0 4px 4px',
+                    boxShadow: '0 0 15px var(--color-accent), 0 0 8px var(--color-accent)',
+                    display: 'block' 
+                  }}
+                />
+              )}
+            </Link>
+          ))}
+        </div>
 
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden w-10 h-10 flex items-center justify-center text-white rounded-lg hover:bg-white/5 transition-colors">
-            {menuOpen ? <FaTimes /> : <FaBars />}
+        {/* Auth & Theme */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }} className="hide-mobile">
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <Link to={dashboardPath} style={{ padding: '0.4rem 1.2rem', fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-bg)', background: brandColor, borderRadius: '999px', textDecoration: 'none', textTransform: 'uppercase' }}>
+                Portal
+              </Link>
+              <button onClick={logout} style={{ padding: '0.4rem 1.2rem', fontSize: '0.75rem', fontWeight: 800, background: 'transparent', border: '1px solid var(--color-accent)', color: 'var(--color-accent)', borderRadius: '999px', cursor: 'pointer', textTransform: 'uppercase' }}>
+                Exit
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" style={{ padding: '0.4rem 1.2rem', fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-bg)', background: brandColor, borderRadius: '999px', textDecoration: 'none', textTransform: 'uppercase' }}>
+              SIGNIN
+            </Link>
+          )}
+
+          <button
+            onClick={toggleTheme}
+            style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: accentColor }}
+          >
+            {theme === 'dark' ? <IoSunny /> : <IoMoon />}
           </button>
         </div>
+
+        {/* Mobile Toggle */}
+        <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', color: 'var(--color-text-main)', cursor: 'pointer' }} className="show-mobile">
+          {menuOpen ? <FaTimes /> : <FaBars />}
+        </button>
       </div>
 
+      {/* Mobile Menu (Integrated into pill on open) */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-deep-black/95 backdrop-blur-xl border-t border-white/10 overflow-hidden">
-            <div className="px-4 py-6 flex flex-col gap-2">
-              {NAV_LINKS.map(link => (
-                <Link key={link.path} to={link.path}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium font-body transition-all ${
-                    location.pathname === link.path ? 'text-gold bg-gold/10' : 'text-text-muted hover:text-white hover:bg-white/5'
-                  }`}>{link.label}</Link>
-              ))}
-              <div className="border-t border-white/10 mt-2 pt-4 flex flex-col gap-2">
-                {user ? (
-                  <>
-                    <Link to={dashboardPath} className="px-4 py-3 rounded-xl text-sm font-medium font-body text-gold bg-gold/10">Dashboard</Link>
-                    <button onClick={logout} className="px-4 py-3 rounded-xl text-sm font-semibold font-body text-deep-black bg-gradient-to-r from-gold to-light-gold">Logout</button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/login" className="px-4 py-3 rounded-xl text-sm font-body text-text-muted hover:text-white hover:bg-white/5">Login</Link>
-                    <Link to="/register" className="px-4 py-3 rounded-xl text-sm font-semibold font-body text-deep-black bg-gradient-to-r from-gold to-light-gold text-center">Register</Link>
-                  </>
-                )}
-              </div>
-            </div>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            style={{ padding: '0.5rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {NAV_LINKS.map(link => (
+              <Link key={link.path} to={link.path} style={{ color: 'var(--color-text-main)', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', padding: '0.5rem 0' }}>{link.label}</Link>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,33 +1,48 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const chatWithAI = async (req, res) => {
   const { message } = req.body;
+
   if (!message) {
     res.status(400);
     throw new Error("Please provide a message");
   }
 
   try {
-    const response = await ai.models.generateContent({
+    // For text-only input, use the gemini-1.5-flash model
+    const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
-      contents: `You are AutoMend AI, a professional and helpful assistant for a Garage Management System. 
-      Your goal is to help users diagnose vehicle issues, recommend services, and assist with bookings.
-      Always be polite, concise, and provide actionable advice.
+      generationConfig: {
+        maxOutputTokens: 500,
+        temperature: 0.7,
+      },
+      systemInstruction: `You are AutoMend AI, a professional automotive diagnostic assistant.
+      Context: You are part of the AutoMend Garage Management System.
+      Your goal is to help users:
+      1. Diagnose potential vehicle issues based on symptoms.
+      2. Explain automotive terms and parts.
+      3. Recommend service types (Home vs Garage).
+      4. Provide maintenance tips.
       
-      User query: ${message}`,
+      Style: Professional, helpful, and concise. Always suggest booking a professional inspection for safety-critical issues (brakes, steering, fuel leaks).`
     });
 
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const text = response.text();
+
     res.json({
-      userMessage: message,
-      aiResponse: response.text || "I'm sorry, I couldn't process that.",
+      reply: text,
+      status: "success"
     });
   } catch (error) {
     console.error("Gemini API Error:", error);
-    res.json({
-      userMessage: message,
-      aiResponse: "I am currently offline. Please try again later. (Error: " + error.message + ")",
+    res.status(500).json({
+      reply: "I'm having trouble connecting to my diagnostic engine right now. Please try again later.",
+      error: error.message
     });
   }
 };

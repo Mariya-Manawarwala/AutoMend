@@ -2,64 +2,73 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  IoSend, 
-  IoFlash, 
-  IoSettings, 
-  IoCalendar, 
-  IoTime, 
-  IoRefresh, 
-  IoRemove, 
-  IoClose,
-  IoChevronForward,
-  IoSearch,
-  IoBuild,
-  IoAttach,
-  IoImage,
-  IoVideocam,
-  IoCall,
-  IoArrowBack
+  IoSend, IoArrowBack, IoClose, IoAttach, IoChevronBack
 } from 'react-icons/io5';
-import { FaRobot, FaUserAlt } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
+import { sendChatMessage } from '../api/chat.api';
 
-const SUGGESTED_QUESTIONS = [
-  "How do I book a service?",
-  "Why is my engine light on?",
-  "Where is the nearest garage?",
-  "How much does a full service cost?",
-  "Common signs of brake failure?"
-];
+// Real robot profile picture — used in chat only
+const MendyChatAvatar = ({ size = 32 }) => (
+  <img
+    src="/mendy-avatar.png"
+    alt="Mendy AI"
+    style={{
+      width: size, height: size,
+      borderRadius: '50%',
+      objectFit: 'cover',
+      border: '2px solid rgba(111,167,161,0.4)',
+      flexShrink: 0,
+      boxShadow: '0 2px 8px rgba(111,167,161,0.25)',
+    }}
+  />
+);
+
+// SVG Avatar kept only for the welcome/get-started card
+const MendyAvatar = ({ size = "w-24 h-24" }) => (
+  <div className={`${size} relative group`}>
+    <div className="absolute inset-0 bg-gradient-to-tr from-gold via-light-gold to-white rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity" />
+    <div className="relative w-full h-full bg-soft-dark rounded-full border-4 border-white/10 shadow-2xl flex items-center justify-center overflow-hidden">
+      <div className="w-[85%] h-[85%] bg-deep-black rounded-full flex flex-col items-center justify-center gap-1">
+        <div className="flex gap-4">
+          <div className="w-4 h-4 rounded-full bg-white shadow-[0_0_10px_#FFF]" />
+          <div className="w-4 h-4 rounded-full bg-white shadow-[0_0_10px_#FFF]" />
+        </div>
+        <div className="w-10 h-1 bg-white/20 rounded-full mt-2" />
+      </div>
+      <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-gold/40 to-transparent" />
+    </div>
+  </div>
+);
 
 const AIChatAssistant = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { settings } = useSettings();
+  const [showWelcome, setShowWelcome] = useState(true);
   const [messages, setMessages] = useState([
     { 
       id: 1, 
       type: 'ai', 
-      text: "Hello! 👋 I'm AutoMend AI. How can I help you today?", 
+      text: `Hey there! I'm Mendy, your personal ${settings.garageName} assistant. What should I call you?`, 
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     }
   ]);
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isClosed, setIsClosed] = useState(false);
   const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    if (!showWelcome) scrollToBottom();
+  }, [messages, isTyping, showWelcome]);
 
   const handleSendMessage = async (text) => {
     const messageToSend = text || inputValue;
-    if (!messageToSend.trim()) return;
+    if (!messageToSend.trim() || isTyping) return;
 
     const newUserMessage = {
       id: Date.now(),
@@ -72,286 +81,176 @@ const AIChatAssistant = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const data = await sendChatMessage(messageToSend);
       setIsTyping(false);
-      const aiResponse = {
+      setMessages(prev => [...prev, {
         id: Date.now() + 1,
         type: 'ai',
-        text: `I've received your query about "${messageToSend}". Our expert system is analyzing it. As a mock response, I recommend checking your owner's manual or booking a diagnostic session.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1500);
-  };
-
-  const handleReload = () => {
-    setMessages([{ 
-      id: 1, 
-      type: 'ai', 
-      text: "Chat reloaded! Everything cleared. How can I assist you?", 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-    }]);
-    setInputValue('');
-    setIsTyping(false);
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        type: 'user',
-        text: `Shared a file: ${file.name}`,
-        file: file.name,
+        text: data.reply || data.message || "I'm here to help! Could you clarify that for me?",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
-
-      // Simulate AI response to file
-      setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages(prev => [...prev, {
-          id: Date.now() + 1,
-          type: 'ai',
-          text: `I've received your file: ${file.name}. I'm analyzing the image/video to help diagnose the issue. Please wait a moment...`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
-      }, 1500);
+    } catch (error) {
+      setIsTyping(false);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        type: 'ai',
+        text: "My sensors are experiencing a brief glitch. Let me try reconnecting!",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
     }
   };
 
-  if (isClosed) {
-    return (
-      <div className="h-screen w-screen bg-deep-black flex items-center justify-center overscroll-none">
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center p-12 bg-card rounded-[3rem] border border-white/5 shadow-2xl max-w-md mx-auto">
-          <div className="w-24 h-24 bg-warm-brown rounded-full flex items-center justify-center mx-auto mb-6 border border-gold/30 shadow-[0_0_50px_rgba(200,155,60,0.2)]">
-            <IoClose className="text-5xl text-gold" />
-          </div>
-          <h2 className="text-3xl font-heading font-bold text-white mb-4">Chat Session Ended</h2>
-          <p className="text-text-muted mb-8">Thank you for consulting with AutoMend AI.</p>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => setIsClosed(false)} className="w-full py-4 bg-gradient-to-r from-gold to-light-gold text-deep-black font-bold rounded-2xl hover:shadow-[0_0_20px_rgba(200,155,60,0.4)] transition-all">Start New Chat</button>
-            <button onClick={() => navigate('/')} className="w-full py-4 bg-soft-dark border border-white/10 text-white font-bold rounded-2xl hover:bg-white/5 transition-all">Go to Homepage</button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-screen w-screen bg-deep-black overflow-hidden overscroll-none flex flex-col pt-6">
-      
-      {/* TOP HEADER - BACK BUTTON */}
-      <div className="px-8 md:px-12 py-4 flex items-center justify-between shrink-0">
-        <motion.button 
-          whileHover={{ x: -10 }}
-          onClick={() => navigate('/')}
-          className="flex items-center gap-3 text-gold font-bold text-lg hover:text-light-gold transition-all group"
-        >
-          <div className="w-10 h-10 rounded-full border-2 border-gold/30 flex items-center justify-center group-hover:border-gold transition-colors">
-            <IoArrowBack />
-          </div>
-          <span>Back to Home</span>
-        </motion.button>
-        
-        <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-card/50 rounded-full border border-white/5 text-[10px] uppercase tracking-widest font-bold text-text-muted">
-          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse" />
-          <span>Automotive AI Session Active</span>
-        </div>
+    <div className="min-h-screen bg-deep-black font-body text-white flex items-center justify-center p-4 md:p-8">
+      {/* ── Background ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M-20,0 L120,50 L-20,100 L200,100 L200,0 Z" fill="white" />
+        </svg>
       </div>
 
-      <div className="flex-1 px-4 md:px-8 lg:px-12 pb-8 pt-4 flex gap-8 overflow-hidden">
-        
-        {/* LEFT PANEL - RESPONSIVE WIDTH */}
-        <motion.div 
-          initial={{ x: -30, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="hidden lg:flex flex-col w-1/4 max-w-[350px] shrink-0 gap-6 h-full overflow-hidden"
-        >
-          <div className="bg-card/40 backdrop-blur-2xl border border-white/10 p-8 rounded-[3rem] flex flex-col h-full overflow-hidden shadow-2xl relative">
+      <AnimatePresence mode="wait">
+        {showWelcome ? (
+          <motion.div 
+            key="welcome"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+            className="relative z-10 w-full max-w-md bg-card/30 backdrop-blur-3xl rounded-[3rem] border border-white/10 p-12 text-center shadow-2xl flex flex-col items-center"
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-bl-full pointer-events-none" />
             
-            <div className="flex items-center gap-4 mb-8 shrink-0">
-              <div className="w-14 h-14 rounded-2xl bg-warm-brown flex items-center justify-center text-gold border border-gold/30 shadow-lg">
-                <FaRobot className="text-2xl" />
-              </div>
-              <h2 className="text-2xl font-heading font-bold text-white">Assistant</h2>
+            {/* Back to home link on welcome card */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-6 left-6 flex items-center gap-1 text-text-muted hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+            >
+              <IoChevronBack className="text-sm" /> Back
+            </button>
+            
+            <MendyAvatar size="w-40 h-40" />
+            
+            <h1 className="text-4xl font-heading font-black italic mt-10 mb-4 tracking-tight">Meet <span className="text-gold">Mendy</span></h1>
+            <p className="text-text-muted text-sm leading-relaxed mb-12 max-w-[280px] mx-auto">
+              Your intelligent companion for all things automotive. Diagnostic, booking, and expert advice.
+            </p>
+            
+            <button 
+              onClick={() => setShowWelcome(false)}
+              className="w-full py-5 bg-gold hover:bg-light-gold text-deep-black rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Get Started
+            </button>
+            
+            <div className="mt-8 pt-8 border-t border-white/5 w-full flex justify-center gap-4">
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Powered by AutoMend AI</span>
             </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="chat"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative z-10 w-full max-w-2xl h-[85vh] bg-card/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 flex flex-col shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="p-5 md:px-8 border-b border-white/5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                {/* Back button — returns to previous page */}
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+                >
+                  <IoArrowBack className="text-sm" />
+                  <span className="hidden sm:inline">Back</span>
+                </button>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-3">
-              <div className="space-y-4">
-                <h3 className="text-gold text-[11px] uppercase tracking-widest font-black flex items-center gap-2">
-                  <IoSearch className="text-base" /> Quick Suggestions
-                </h3>
-                <div className="space-y-2.5">
-                  {SUGGESTED_QUESTIONS.map((q, idx) => (
-                    <button 
-                      key={idx} 
-                      onClick={() => handleSendMessage(q)}
-                      className="w-full text-left p-4 rounded-2xl bg-white/5 border border-white/5 text-xs text-text-gray hover:bg-gold/10 hover:border-gold/40 hover:translate-x-2 transition-all group flex items-center justify-between"
-                    >
-                      <span className="line-clamp-1">{q}</span>
-                      <IoChevronForward className="text-gold opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                    </button>
-                  ))}
+                {/* Mendy robot image + info */}
+                <div className="flex items-center gap-3 ml-1">
+                  <div className="relative">
+                    <MendyChatAvatar size={46} />
+                    {/* Online indicator */}
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-[#22252C]" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-white italic uppercase tracking-tight leading-none">Mendy</h2>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[9px] font-bold text-green-400 uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      AI Assistant · Active
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 bg-gradient-to-br from-warm-brown/40 to-transparent border border-gold/20 rounded-[2rem] shadow-xl">
-                <h4 className="text-white text-base font-bold mb-3 flex items-center gap-2"><IoCall className="text-gold" /> Helpline</h4>
-                <p className="text-[11px] text-text-muted mb-6 leading-relaxed">Direct connection to our master mechanics.</p>
-                <a href="tel:+919876543210" className="flex items-center justify-center gap-2 w-full py-3 bg-gold text-deep-black text-xs font-black rounded-xl hover:shadow-[0_0_20px_rgba(200,155,60,0.4)] transition-all hover:-translate-y-1">
-                  <IoCall /> +91 98765 43210
-                </a>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* MAIN CHAT AREA - RESPONSIVE WIDTH */}
-        <motion.div 
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="flex-1 flex flex-col bg-soft-dark/40 backdrop-blur-3xl rounded-[3.5rem] border border-white/10 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] relative h-full"
-        >
-          {/* Header */}
-          <div className="px-10 py-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-warm-brown flex items-center justify-center text-gold shadow-inner border border-gold/20">
-                  <FaRobot className="text-3xl" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-4 border-soft-dark shadow-lg animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-heading font-bold text-white">AutoMend AI</h2>
-                  <span className="px-3 py-1 rounded-lg bg-gold/10 text-[10px] font-black text-gold border border-gold/20 uppercase tracking-[0.2em]">Live</span>
-                </div>
-                <p className="text-xs text-text-muted mt-1 font-medium tracking-wide">Intelligent Diagnostic Engine v2.5</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setIsClosed(true)}
-                title="Close Chat"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-text-muted hover:bg-red-500/20 hover:text-red-500 hover:scale-110 transition-all border border-white/5"
-              >
-                <IoClose className="text-xl" />
+              {/* Close — goes to home */}
+              <button onClick={() => navigate('/')} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-muted hover:bg-red-500/10 hover:text-red-500 transition-all">
+                <IoClose />
               </button>
             </div>
-          </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-8 custom-scrollbar scroll-smooth">
-            <AnimatePresence initial={false}>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 space-y-6 custom-scrollbar">
               {messages.map((msg) => (
                 <motion.div 
                   key={msg.id}
-                  initial={{ opacity: 0, x: msg.type === 'ai' ? -40 : 40, scale: 0.95 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  initial={{ opacity: 0, x: msg.type === 'ai' ? -20 : 20, y: 10 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
                   className={`flex ${msg.type === 'ai' ? 'justify-start' : 'justify-end'}`}
                 >
-                  <div className={`flex gap-5 max-w-[85%] lg:max-w-[70%] ${msg.type === 'ai' ? 'flex-row' : 'flex-row-reverse'}`}>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-1 shadow-2xl ${
-                      msg.type === 'ai' ? 'bg-warm-brown text-gold border border-gold/30' : 'bg-gradient-to-br from-gold to-light-gold text-deep-black'
-                    }`}>
-                      {msg.type === 'ai' ? <FaRobot className="text-lg" /> : <FaUserAlt className="text-sm" />}
-                    </div>
-                    <div className="space-y-3">
-                      <div className={`px-7 py-6 rounded-[2.5rem] text-sm md:text-base leading-relaxed shadow-2xl border ${
+                  <div className={`flex gap-3 max-w-[85%] ${msg.type === 'ai' ? 'flex-row' : 'flex-row-reverse'}`}>
+                    {/* Robot image next to each AI message */}
+                    {msg.type === 'ai' && <MendyChatAvatar size={32} />}
+                    <div className="space-y-1">
+                      <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-lg ${
                         msg.type === 'ai' 
-                          ? 'bg-card border-white/5 rounded-tl-none text-text-gray' 
-                          : 'bg-gradient-to-r from-gold to-light-gold text-deep-black font-bold rounded-tr-none border-gold/30'
+                          ? 'bg-soft-dark border border-white/5 rounded-tl-none text-white' 
+                          : 'bg-gold text-dark-graphite font-bold rounded-tr-none'
                       }`}>
                         {msg.text}
-                        {msg.file && (
-                          <div className="mt-4 p-4 bg-black/30 rounded-3xl flex items-center gap-4 border border-white/10">
-                            <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center text-gold">
-                              <IoImage className="text-2xl" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-black text-white truncate uppercase tracking-widest">{msg.file}</p>
-                              <p className="text-[10px] text-text-muted">Diagnostic asset shared</p>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                      <p className={`text-[10px] font-black uppercase tracking-[0.2em] text-text-muted px-4 ${msg.type === 'ai' ? 'text-left' : 'text-right'}`}>{msg.time}</p>
+                      <p className={`text-[8px] font-black uppercase text-text-muted px-2 ${msg.type === 'ai' ? 'text-left' : 'text-right'}`}>
+                        {msg.time}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
               ))}
-              
               {isTyping && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start gap-5">
-                  <div className="w-10 h-10 rounded-xl bg-warm-brown text-gold flex items-center justify-center border border-gold/30"><FaRobot className="text-lg" /></div>
-                  <div className="px-10 py-6 bg-card rounded-[2rem] rounded-tl-none border border-white/5 flex gap-2 items-center shadow-xl">
-                    {[0,1,2].map(i => (
-                      <motion.div 
-                        key={i} 
-                        animate={{ y: [0, -8, 0], opacity: [0.3, 1, 0.3] }} 
-                        transition={{ repeat: Infinity, duration: 0.8, delay: i*0.2 }} 
-                        className="w-2.5 h-2.5 bg-gold rounded-full" 
-                      />
-                    ))}
+                <div className="flex justify-start gap-3">
+                  <MendyChatAvatar size={32} />
+                  <div className="bg-soft-dark px-4 py-3 rounded-2xl rounded-tl-none border border-white/5 flex gap-1 items-center">
+                    {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 bg-gold rounded-full animate-bounce" style={{ animationDelay: `${i*0.2}s` }} />)}
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-            <div ref={messagesEndRef} />
-          </div>
+              <div ref={messagesEndRef} />
+            </div>
 
-          {/* Input Bar (Thinner) */}
-          <div className="p-4 md:p-6 border-t border-white/5 bg-white/[0.01] shrink-0">
-            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-4">
-              <div className="flex-1 relative group">
+            {/* Input */}
+            <div className="p-6 md:p-8 bg-black/20 border-t border-white/5">
+              <form 
+                onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                className="flex items-center gap-3 bg-white/5 rounded-2xl p-2 border border-white/10 focus-within:border-gold/50 focus-within:bg-white/10 transition-all"
+              >
+                <button type="button" className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-gold transition-all">
+                  <IoAttach className="text-xl" />
+                </button>
                 <input 
                   type="text" 
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask AutoMend AI..."
-                  className="w-full bg-card border border-white/10 rounded-xl py-3 px-5 pr-14 focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 text-sm text-text-light placeholder:text-text-muted transition-all shadow-md"
+                  placeholder="Ask Mendy anything about your car..."
+                  className="flex-1 bg-transparent border-none outline-none text-sm px-2 text-white placeholder:text-white/20"
                 />
                 <button 
-                  type="button" 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-gold hover:bg-gold/10 transition-all group/btn"
+                  disabled={!inputValue.trim() || isTyping}
+                  className="w-10 h-10 bg-gold text-deep-black rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all"
                 >
-                  <IoAttach className="text-xl group-hover/btn:rotate-45 transition-transform" />
+                  <IoSend />
                 </button>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-              </div>
-              <button 
-                type="submit" 
-                disabled={!inputValue.trim() && !isTyping}
-                className="w-10 h-10 bg-gradient-to-r from-gold to-light-gold text-deep-black rounded-lg flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all shrink-0 disabled:opacity-50"
-              >
-                <IoSend className="text-lg" />
-              </button>
-            </form>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Persistence / Minimize Bubble */}
-      <AnimatePresence>
-        {isMinimized && (
-          <motion.div 
-            initial={{ scale: 0, x: -100, y: 100 }} 
-            animate={{ scale: 1, x: 0, y: 0 }} 
-            className="fixed bottom-12 left-12 z-[300]"
-          >
-            <button 
-              onClick={() => { setIsMinimized(false); navigate('/ai-assistant'); }} 
-              className="w-24 h-24 rounded-full bg-gradient-to-r from-gold to-light-gold flex items-center justify-center shadow-[0_0_50px_rgba(200,155,60,0.6)] group hover:scale-110 transition-all border-4 border-deep-black animate-bounce-subtle"
-            >
-              <FaRobot className="text-4xl text-deep-black" />
-              <div className="absolute left-full ml-4 bg-white text-deep-black px-5 py-2 rounded-2xl text-sm font-black whitespace-nowrap shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Resume Session
-              </div>
-            </button>
+              </form>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

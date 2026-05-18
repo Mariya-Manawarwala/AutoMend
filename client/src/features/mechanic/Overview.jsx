@@ -1,95 +1,252 @@
 import { motion } from 'framer-motion'
-import { FaCar, FaWrench, FaCheckCircle, FaStar, FaMapMarkerAlt, FaClock } from 'react-icons/fa'
+import { FaCar, FaWrench, FaStar, FaMapMarkerAlt, FaClock, FaArrowRight, FaBolt } from 'react-icons/fa'
+import { useMechanicEarnings, useJobs } from '../../hooks/useJobHooks'
+import { useRequests } from '../../hooks/useRequestHooks'
+import { useAuth } from '../../context/AuthContext'
+
+/* ── Section header (Biscarrosse italic serif) ── */
+function SectionHeader({ title, sub, action, onAction }) {
+  return (
+    <div className="flex items-end justify-between mb-5">
+      <div>
+        {sub && <p className="text-label mb-1">{sub}</p>}
+        <h3 className="font-heading italic font-500 text-2xl" style={{ color: 'var(--color-teal-deep)' }}>
+          {title}
+        </h3>
+        <div className="section-rule mt-2" />
+      </div>
+      {action && (
+        <button
+          onClick={onAction}
+          className="text-label font-600 flex items-center gap-1 hover:opacity-70 transition-opacity"
+          style={{ color: 'var(--color-teal)' }}
+        >
+          {action} <FaArrowRight className="text-[9px]" />
+        </button>
+      )}
+    </div>
+  )
+}
 
 export default function Overview({ setTab }) {
+  const { user } = useAuth()
+  const { data: earningsData } = useMechanicEarnings()
+  const { data: activeJobs = [], isLoading: jobsLoading } = useJobs('active')
+  const { data: availableRequests = [] } = useRequests('mechanic')
+
+  const stats = earningsData?.stats || {}
+  const activeJob = activeJobs[0]
+
+  const handleNavigate = (location) => {
+    if (!location) return
+    const url = location.lat && location.lng
+      ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`
+    window.open(url, '_blank')
+  }
+
+  const kpis = [
+    { label: 'Active Jobs',  value: activeJobs.length,                         color: 'var(--color-coral)',       bg: 'var(--color-coral-faint)' },
+    { label: 'Completed',    value: stats.completed || 0,                       color: '#2D8A6A',                  bg: 'rgba(45,138,106,0.07)'    },
+    { label: 'This Month',   value: `₹${(stats.month || 0).toLocaleString()}`, color: 'var(--color-teal-deep)',   bg: 'var(--color-teal-faint)'  },
+    { label: 'Rating',       value: '4.9 ★',                                   color: 'var(--color-peach-deep)',  bg: 'var(--color-peach-faint)' },
+  ]
+
   return (
-    <div className="space-y-8 pb-10">
-      
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { l: 'Active Jobs', v: '2', sub: 'In Progress', color: 'text-sierra', border: 'hover:border-sierra/30' },
-          { l: 'Completed Jobs', v: '18', sub: 'This Month', color: 'text-emerald-400', border: 'hover:border-emerald-500/30' },
-          { l: 'Earnings', v: '₹42,500', sub: 'This Month', color: 'text-gold', border: 'hover:border-gold/30' },
-          { l: 'Rating', v: '4.9', sub: 'Based on 45 reviews', color: 'text-white', border: 'hover:border-white/20' }
-        ].map((s, i) => (
-          <motion.div key={s.l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-            className={`bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-white/5 transition-all duration-300 hover:-translate-y-1 shadow-lg ${s.border}`}>
-            <p className="text-sm font-body text-text-muted mb-2">{s.l}</p>
-            <div className="flex items-end justify-between">
-              <p className={`text-4xl font-heading font-bold ${s.color}`}>{s.v}</p>
-              <span className="text-xs text-text-muted mb-1">{s.sub}</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+    <div className="max-w-5xl space-y-10 pb-12">
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Active Job Panel */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="lg:col-span-2 bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-700" />
-          
-          <div className="flex items-center justify-between mb-6 relative z-10">
-            <h3 className="text-xl font-heading font-bold text-white">Current Active Job</h3>
-            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-sierra/10 text-sierra border-sierra/20 shadow-[0_0_10px_rgba(169,120,95,0.2)]">In Progress</span>
-          </div>
+      {/* ── Greeting ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <p className="text-label mb-1">Mechanic Dashboard</p>
+        <h2 className="font-heading italic font-500 text-3xl" style={{ color: 'var(--color-teal-deep)' }}>
+          Good day, {user?.name?.split(' ')[0] || 'Mechanic'}
+        </h2>
+        <div className="section-rule mt-2" />
+      </motion.div>
 
-          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-            <div className="w-full md:w-1/3 aspect-video rounded-xl bg-soft-dark border border-white/5 overflow-hidden flex items-center justify-center">
-              <FaCar className="text-6xl text-text-muted opacity-50" />
-            </div>
-            <div className="w-full md:w-2/3 space-y-4">
-              <div>
-                <p className="text-sm text-gold font-bold mb-1">REQ-1023</p>
-                <h4 className="text-2xl font-heading font-bold text-white">2024 BMW X5</h4>
-                <p className="text-sm text-text-muted flex items-center gap-2 mt-1"><FaWrench className="text-xs" /> Engine making weird noise</p>
+      {/* ══════ KPI STRIP ══════ */}
+      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {kpis.map((k, i) => (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * i + 0.1, duration: 0.4 }}
+              className="stat-card text-center"
+            >
+              <div
+                className="w-10 h-10 rounded mx-auto mb-3 flex items-center justify-center"
+                style={{ background: k.bg }}
+              >
+                <FaBolt style={{ color: k.color, fontSize: '0.9rem' }} />
               </div>
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                <div>
-                  <p className="text-xs text-text-muted mb-1"><FaClock className="inline mr-1" /> Time</p>
-                  <p className="text-sm text-white font-medium">Started 2 hrs ago</p>
+              <p className="font-heading font-600 text-2xl leading-none mb-1" style={{ color: k.color }}>
+                {k.value}
+              </p>
+              <p className="text-label">{k.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* ══════ ACTIVE JOB ══════ */}
+      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <SectionHeader
+          title="Current active job"
+          sub="Operational center"
+        />
+
+        {activeJob ? (
+          <div className="card overflow-hidden">
+            <div className="flex flex-col sm:flex-row">
+              {/* Vehicle block — teal colored (Biscarrosse style) */}
+              <div
+                className="sm:w-56 shrink-0 flex items-center justify-center"
+                style={{ background: 'var(--color-teal)', minHeight: '170px' }}
+              >
+                {activeJob.requestId?.vehicle?.image
+                  ? <img src={activeJob.requestId.vehicle.image} alt="Vehicle" className="w-full h-full object-cover" style={{ minHeight: '170px' }} />
+                  : (
+                    <div className="text-center p-6">
+                      <FaCar className="text-white/40 text-4xl mx-auto mb-2" />
+                      <p className="text-white/60 text-sm font-500">
+                        {activeJob.requestId?.vehicle?.brand} {activeJob.requestId?.vehicle?.model}
+                      </p>
+                    </div>
+                  )
+                }
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="text-label mb-1">REQ-{activeJob._id.slice(-6).toUpperCase()}</p>
+                    <h4 className="font-heading font-500 text-xl" style={{ color: 'var(--color-teal-deep)' }}>
+                      {activeJob.requestId?.vehicle?.brand} {activeJob.requestId?.vehicle?.model}
+                    </h4>
+                  </div>
+                  <span className="badge badge-coral">
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" style={{ animation: 'breathe 2s ease-in-out infinite' }} />
+                    {activeJob.jobStatus === 'InProgress' ? 'In Progress' : activeJob.jobStatus}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-xs text-text-muted mb-1"><FaMapMarkerAlt className="inline mr-1" /> Location</p>
-                  <p className="text-sm text-white font-medium">Home Service (2.5 km)</p>
+
+                <p className="text-sm mb-4 flex items-start gap-2" style={{ color: 'var(--color-text-gray)', lineHeight: 1.6 }}>
+                  <FaWrench className="mt-0.5 shrink-0 text-xs" style={{ color: 'var(--color-teal)' }} />
+                  {activeJob.requestId?.description}
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 mb-5 pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <div>
+                    <p className="text-label mb-1">
+                      <FaClock className="inline mr-1" style={{ color: 'var(--color-teal)' }} /> Assigned
+                    </p>
+                    <p className="text-sm font-500" style={{ color: 'var(--color-text-light)' }}>
+                      {new Date(activeJob.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-label mb-1">
+                      <FaMapMarkerAlt className="inline mr-1" style={{ color: 'var(--color-teal)' }} /> Location
+                    </p>
+                    <p className="text-sm font-500 truncate" style={{ color: 'var(--color-text-light)' }}>
+                      {activeJob.requestId?.location?.address || 'On-site'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-4 flex items-center justify-between">
-                <button onClick={() => setTab('jobs')} className="px-6 py-2.5 bg-gradient-to-r from-gold to-light-gold text-deep-black rounded-xl font-bold hover:shadow-[0_0_15px_rgba(200,155,60,0.4)] hover:scale-105 transition-all">
-                  Open Work Panel
-                </button>
-                <button className="px-6 py-2.5 bg-soft-dark border border-white/10 text-white rounded-xl font-bold hover:bg-white/5 hover:border-gold/30 transition-colors">
-                  Navigate
-                </button>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { localStorage.setItem('activeJobId', activeJob._id); setTab('jobs') }}
+                    className="btn-primary flex-1"
+                  >
+                    Work Panel <FaArrowRight className="text-xs" />
+                  </button>
+                  <button
+                    onClick={() => { handleNavigate(activeJob.requestId?.location); setTab('jobs') }}
+                    className="btn-ghost flex-1"
+                  >
+                    <FaMapMarkerAlt className="text-xs" /> Navigate
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </motion.div>
-
-        {/* Quick Actions */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col">
-          <h3 className="text-lg font-heading font-bold text-white mb-6">Quick Links</h3>
-          <div className="space-y-4 flex-1">
-            <button onClick={() => setTab('requests')} className="w-full flex items-center gap-4 p-4 rounded-xl bg-soft-dark border border-gold/30 shadow-[0_0_15px_rgba(200,155,60,0.1)] hover:bg-gold/5 transition-all group text-left relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full m-3 animate-pulse" />
-              <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center text-gold group-hover:scale-110 transition-transform"><FaCar /></div>
-              <div>
-                <p className="text-sm font-bold text-white group-hover:text-gold transition-colors">View Live Requests</p>
-                <p className="text-xs text-text-muted">4 new jobs available</p>
-              </div>
-            </button>
-            <button onClick={() => setTab('earnings')} className="w-full flex items-center gap-4 p-4 rounded-xl bg-soft-dark border border-white/5 hover:border-white/20 transition-all group text-left">
-              <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white group-hover:scale-110 transition-transform"><FaStar /></div>
-              <div>
-                <p className="text-sm font-bold text-white">Check Earnings</p>
-                <p className="text-xs text-text-muted">View your payout history</p>
-              </div>
+        ) : (
+          <div
+            className="rounded-lg p-10 text-center"
+            style={{ background: 'var(--color-teal-faint)', border: '1px dashed rgba(45,126,126,0.2)' }}
+          >
+            <FaWrench className="text-3xl mx-auto mb-3" style={{ color: 'var(--color-teal-pale)' }} />
+            <p className="font-heading italic font-500 text-lg mb-2" style={{ color: 'var(--color-teal-deep)' }}>
+              No active assignment
+            </p>
+            <p className="text-sm mb-5" style={{ color: 'var(--color-text-muted)' }}>
+              Browse live requests to pick up a job and start earning.
+            </p>
+            <button onClick={() => setTab('requests')} className="btn-primary">
+              Browse Requests <FaArrowRight className="text-xs" />
             </button>
           </div>
-        </motion.div>
-      </div>
+        )}
+      </motion.section>
+
+      {/* ══════ QUICK LINKS — teal/coral/peach blocks (Biscarrosse pattern) ══════ */}
+      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <SectionHeader title="Quick links" sub="Navigate your workspace" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Live requests — teal with badge */}
+          <button
+            onClick={() => setTab('requests')}
+            className="card-teal p-6 text-left group relative"
+          >
+            {availableRequests.length > 0 && (
+              <span className="absolute top-4 right-4 w-5 h-5 rounded-full bg-white text-teal-deep text-[10px] font-700 flex items-center justify-center">
+                {availableRequests.length}
+              </span>
+            )}
+            <div className="w-10 h-10 rounded bg-white/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <FaCar className="text-white text-sm" />
+            </div>
+            <p className="font-heading font-500 text-base text-white mb-1">Live Requests</p>
+            <p className="text-sm text-white/70">
+              {availableRequests.length > 0
+                ? `${availableRequests.length} available now`
+                : 'No requests right now'}
+            </p>
+          </button>
+
+          {/* Earnings — coral */}
+          <button
+            onClick={() => setTab('earnings')}
+            className="card-coral p-6 text-left group"
+          >
+            <div className="w-10 h-10 rounded bg-white/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <FaStar className="text-white text-sm" />
+            </div>
+            <p className="font-heading font-500 text-base text-white mb-1">My Earnings</p>
+            <p className="text-sm text-white/70">₹{(stats.month || 0).toLocaleString()} this month</p>
+          </button>
+
+          {/* History — peach */}
+          <button
+            onClick={() => setTab('history')}
+            className="card-peach p-6 text-left group"
+          >
+            <div
+              className="w-10 h-10 rounded flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+              style={{ background: 'rgba(58,48,32,0.1)' }}
+            >
+              <FaStar className="text-sm" style={{ color: '#5A4A2A' }} />
+            </div>
+            <p className="font-heading font-500 text-base mb-1" style={{ color: '#3A3020' }}>Service History</p>
+            <p className="text-sm" style={{ color: '#6A5A40' }}>{stats.completed || 0} jobs completed</p>
+          </button>
+        </div>
+      </motion.section>
     </div>
   )
 }

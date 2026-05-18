@@ -1,40 +1,65 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getJobByRequestId, updateJob, submitBill, applyCoupon } from '../api/jobs.api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getMyJobs, getJobDetails, updateJobStatus, addServicesToJob, submitBill, updateMechanicLocation, getMechanicEarnings, generateFinalInvoice } from '../api/jobs.api';
 
-export const useJob = (requestId) => {
+export const useJobs = (status) => {
   return useQuery({
-    queryKey: ['job', requestId],
-    queryFn: () => getJobByRequestId(requestId),
-    enabled: !!requestId,
-  })
-}
+    queryKey: ['jobs', status],
+    queryFn: () => getMyJobs(status),
+  });
+};
 
-export const useUpdateJob = () => {
-  const queryClient = useQueryClient()
+export const useJobDetails = (id) => {
+  return useQuery({
+    queryKey: ['jobs', id],
+    queryFn: () => getJobDetails(id),
+    enabled: !!id,
+  });
+};
+
+export const useUpdateJobStatus = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ jobId, data }) => updateJob(jobId, data),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['job'] })
+    mutationFn: ({ id, status }) => updateJobStatus(id, status),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', id] });
     },
-  })
-}
+  });
+};
+
+export const useUpdateMechanicLocation = () => {
+  return useMutation({
+    mutationFn: ({ id, location }) => updateMechanicLocation(id, location),
+  });
+};
 
 export const useSubmitBill = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: submitBill,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['job'] })
+    mutationFn: ({ id, data }) => submitBill(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', id] });
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      queryClient.invalidateQueries({ queryKey: ['earnings'] });
     },
-  })
-}
+  });
+};
 
-export const useApplyCoupon = () => {
-  const queryClient = useQueryClient()
+export const useMechanicEarnings = () => {
+  return useQuery({
+    queryKey: ['earnings'],
+    queryFn: getMechanicEarnings,
+  });
+};
+
+export const useGenerateFinalInvoice = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ jobId, couponCode }) => applyCoupon(jobId, couponCode),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['job'] })
+    mutationFn: (id) => generateFinalInvoice(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['jobs', id] });
+      queryClient.invalidateQueries({ queryKey: ['earnings'] });
     },
-  })
-}
+  });
+};

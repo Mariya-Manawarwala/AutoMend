@@ -1,127 +1,547 @@
-import { motion } from 'framer-motion'
-import { FaCar, FaWrench, FaShieldAlt, FaMapMarkerAlt, FaCheckCircle, FaStar, FaArrowRight } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
-import { SERVICES, MECHANICS, STATS } from '../data/constants'
+import { useState, useRef, useEffect } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { FaWrench, FaCar, FaSearch, FaMapMarkerAlt, FaCalendarAlt, FaStar, FaArrowRight, FaCheckCircle, FaTools, FaOilCan, FaCogs } from 'react-icons/fa'
+import { Link, useNavigate } from 'react-router-dom'
+import { SERVICES as MOCK_SERVICES, MECHANICS as MOCK_MECHANICS, STATS } from '../data/constants'
+import { getAllServices } from '../api/services.api'
+import { getPublicMechanics } from '../api/mechanics.api'
+
+const SERVICE_TYPES = [
+  { id: 'repair', label: 'Repair', icon: FaWrench },
+  { id: 'inspection', label: 'Inspection', icon: FaTools },
+]
+
+const BRAND_LOGOS = [
+  { name: 'BMW', symbol: 'BMW' },
+  { name: 'Ford', symbol: 'Ford' },
+  { name: 'Toyota', symbol: 'Toyota' },
+  { name: 'Tesla', symbol: 'Tesla' },
+  { name: 'Mercedes', symbol: 'Merc' },
+  { name: 'Nissan', symbol: 'Nissan' },
+  { name: 'Honda', symbol: 'Honda' },
+  { name: 'KIA', symbol: 'KIA' },
+]
+
+// Fallback image mapping based on service names or categories
+const IMAGE_MAP = {
+  'Engine': '/images/engine.png',
+  'Oil': '/images/oil.png',
+  'Wheel': '/images/wheel.png',
+  'Brake': '/images/brake.png',
+  'Digital': '/images/diagnostics.png',
+  'default': '/images/engine.png'
+}
+
+const getServiceImage = (name) => {
+  const n = name || ''
+  if (n.includes('Engine')) return IMAGE_MAP['Engine']
+  if (n.includes('Oil')) return IMAGE_MAP['Oil']
+  if (n.includes('Wheel') || n.includes('Tire')) return IMAGE_MAP['Wheel']
+  if (n.includes('Brake')) return IMAGE_MAP['Brake']
+  if (n.includes('Scan') || n.includes('Digital') || n.includes('Diagnostic')) return IMAGE_MAP['Digital']
+  return IMAGE_MAP['default']
+}
 
 export default function Home() {
+  const navigate = useNavigate()
+  const [activeType, setActiveType] = useState('repair')
+  const [location, setLocation] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [mechanicsData, setMechanicsData] = useState(MOCK_MECHANICS)
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await getAllServices()
+        if (data && Array.isArray(data)) {
+          setServices(data.length > 0 ? data : MOCK_SERVICES)
+        } else {
+          setServices(MOCK_SERVICES)
+        }
+      } catch (err) {
+        console.error('Failed to fetch services:', err)
+        setServices(MOCK_SERVICES)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchServices()
+  }, [])
+
+  // Fetch real mechanics from backend (fallback to mock)
+  useEffect(() => {
+    getPublicMechanics(3)
+      .then(data => { if (data?.length > 0) setMechanicsData(data) })
+      .catch(() => {}) // silently use mock on failure
+  }, [])
+
+  const nextService = () => {
+    setActiveIndex(prev => (prev + 1) % services.length)
+  }
+
+  const prevService = () => {
+    setActiveIndex(prev => (prev - 1 + services.length) % services.length)
+  }
+  const handleQuickSearch = () => {
+    navigate('/booking', { 
+      state: { 
+        serviceType: activeType, 
+        location: location, 
+        date: startDate, 
+        time: endDate 
+      } 
+    })
+  }
+
   return (
-    <main className="font-body">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-deep-black">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/10 via-deep-black to-deep-black pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-warm-brown/20 blur-[150px] pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-              <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-semibold mb-6 tracking-wide uppercase border border-gold/20 shadow-[0_0_10px_rgba(200,155,60,0.2)]">Premium Auto Care</span>
-              <h1 className="text-5xl lg:text-7xl font-heading font-bold text-white leading-[1.1] mb-6">
-                Expert Garage Services at Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold to-light-gold relative inline-block">Doorstep<motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ delay: 0.8, duration: 0.8 }} className="absolute -bottom-2 left-0 h-2 bg-gradient-to-r from-gold to-transparent rounded-full opacity-50" /></span>
-              </h1>
-              <p className="text-lg text-text-muted mb-10 max-w-lg leading-relaxed">Book certified mechanics instantly. Transparent pricing, genuine parts, and world-class service—wherever you are.</p>
-              
-              <div className="flex flex-wrap items-center gap-4">
-                <Link to="/booking" className="px-8 py-4 bg-gradient-to-r from-gold to-light-gold text-deep-black rounded-xl font-bold hover:shadow-[0_0_25px_rgba(200,155,60,0.4)] transition-all flex items-center gap-2 hover:-translate-y-1">Book Service Now <FaArrowRight /></Link>
-                <Link to="/services" className="px-8 py-4 bg-soft-dark border border-white/10 text-white rounded-xl font-medium hover:bg-white/5 transition-all flex items-center gap-2">Explore Services</Link>
+    <main style={{ fontFamily: 'var(--font-body)', position: 'relative', overflow: 'hidden' }}>
+      {/* ── Global Zig-Zag Background Design ── */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <svg width="100%" height="100%" viewBox="0 0 100 1000" preserveAspectRatio="none" style={{ opacity: 0.09 }}>
+          <defs>
+            <linearGradient id="globalZigGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="var(--color-text-main)" />
+              <stop offset="30%" stopColor="var(--color-primary)" />
+              <stop offset="60%" stopColor="var(--color-text-main)" />
+              <stop offset="90%" stopColor="var(--color-primary)" />
+            </linearGradient>
+          </defs>
+          <path 
+            d="M-50,0 L150,200 L-50,400 L150,600 L-50,800 L150,1000 L250,1000 L50,800 L250,600 L50,400 L250,200 L50,0 Z" 
+            fill="url(#globalZigGrad)"
+            stroke="rgba(217,137,106,0.15)"
+            strokeWidth="0.1"
+          />
+        </svg>
+      </div>
+
+      {/* ── HERO ── */}
+      <section style={{
+        position: 'relative',
+        minHeight: '90vh',
+        paddingTop: '68px',
+        overflow: 'hidden',
+      }}>
+        {/* Full-background car image */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=1800)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          zIndex: 0,
+        }} />
+
+        {/* Overlay: Light translucent overlay — lets car show through softly */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(244,246,248,0.55) 0%, rgba(244,246,248,0.72) 50%, rgba(244,246,248,0.92) 100%)',
+          zIndex: 1,
+        }} />
+
+        {/* Decorative asterisks */}
+        <span style={{ position: 'absolute', top: '12%', left: '15%', fontSize: '2.8rem', color: 'var(--color-primary)', fontWeight: 900, lineHeight: 1, userSelect: 'none', zIndex: 3, opacity: 0.8 }}>✳</span>
+        <span style={{ position: 'absolute', top: '10%', right: '18%', fontSize: '1rem', color: 'var(--color-primary)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
+        <span style={{ position: 'absolute', top: '70%', left: '10%', fontSize: '0.9rem', color: 'var(--color-accent)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
+
+        {/* Content layer */}
+        <div style={{
+          position: 'relative', zIndex: 2,
+          maxWidth: '1200px', margin: '0 auto', padding: '0 2rem',
+          minHeight: 'calc(90vh - 68px)',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          alignItems: 'center', textAlign: 'center',
+        }}>
+          {/* Centered content: heading + booking card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
+            style={{ maxWidth: '720px', width: '100%' }}
+          >
+            <h1 style={{ fontSize: 'clamp(2.4rem, 5vw, 3.2rem)', fontWeight: 800, color: 'var(--color-dark-graphite)', lineHeight: 1.15, marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
+              Search, book, and<br />
+              <span style={{ color: 'var(--color-primary)' }}>fix your car easily</span>
+            </h1>
+            <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2.5rem', lineHeight: 1.7, maxWidth: '520px', margin: '0 auto 2.5rem' }}>
+              Get a certified mechanic wherever and whenever you need it — right from your phone or desktop.
+            </p>
+
+            {/* Booking card — Frosted glass light */}
+            <div style={{ 
+              background: 'rgba(255,255,255,0.72)', 
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '16px', 
+              padding: '1rem 1.4rem', 
+              boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+              margin: '0 auto',
+              maxWidth: '620px',
+              width: '100%',
+              border: '1px solid rgba(255,255,255,0.8)',
+            }}>
+              {/* Tabs */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.75rem', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.4rem' }}>
+                {SERVICE_TYPES.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveType(t.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.35rem',
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: '0.82rem', fontWeight: 600,
+                      color: activeType === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                      paddingBottom: '0.2rem',
+                      borderBottom: activeType === t.id ? '2px solid var(--color-primary)' : '2px solid transparent',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <t.icon style={{ fontSize: '0.85rem' }} />
+                    {t.label}
+                  </button>
+                ))}
               </div>
 
-              <div className="mt-12 flex items-center gap-6">
-                <div className="flex -space-x-4">
-                  {['AK', 'PS', 'RV'].map((a, i) => (
-                    <div key={i} className="w-12 h-12 rounded-full bg-card border-2 border-deep-black flex items-center justify-center text-xs font-bold text-gold shadow-lg z-[3-i] relative">{a}</div>
-                  ))}
+              {/* Inputs row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr auto', gap: '0.75rem', alignItems: 'end', textAlign: 'left' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                    <FaMapMarkerAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
+                    <input type="text" placeholder="City, Area" value={location} onChange={e => setLocation(e.target.value)}
+                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
+                  </div>
                 </div>
-                <div><div className="flex items-center gap-1 text-gold mb-1">{[...Array(5)].map((_, i) => <FaStar key={i} />)}</div><p className="text-sm text-text-muted"><strong className="text-white">4.9/5</strong> from 15,000+ reviews</p></div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                    <FaCalendarAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
+                    <input type="text" placeholder="Pick date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                      onFocus={e => (e.target.type = 'date')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
+                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Time</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                    <FaWrench style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} rotate={90} />
+                    <input type="text" placeholder="Pick time" value={endDate} onChange={e => setEndDate(e.target.value)}
+                      onFocus={e => (e.target.type = 'time')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
+                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
+                  </div>
+                </div>
+                <button 
+                  onClick={handleQuickSearch}
+                  className="w-[38px] h-[38px] rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-[var(--color-bg)] flex items-center justify-center fontSize-0.9rem flex-shrink-0 transition-all hover:scale-110 active:scale-95"
+                >
+                  <FaSearch />
+                </button>
               </div>
-            </motion.div>
-            
-            <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="relative hidden lg:block">
-              <div className="absolute inset-0 bg-gradient-to-tr from-gold/20 to-transparent rounded-[3rem] blur-2xl transform rotate-3" />
-              <div className="relative bg-card border border-white/10 rounded-[3rem] p-8 shadow-2xl overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gold/10 rounded-bl-full transition-transform duration-700 group-hover:scale-110" />
-                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80" alt="Luxury Car Service" className="rounded-2xl shadow-xl w-full object-cover h-[500px] border border-white/5 relative z-10" />
-                <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 4 }} className="absolute -left-8 top-1/4 bg-soft-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-2xl z-20 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"><FaCheckCircle className="text-2xl" /></div>
-                  <div><p className="text-white font-bold text-sm">Service Complete</p><p className="text-text-muted text-xs">Your car is ready</p></div>
-                </motion.div>
-                <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 5, delay: 1 }} className="absolute -right-8 bottom-1/4 bg-soft-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-2xl z-20 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold"><FaStar className="text-2xl" /></div>
-                  <div><p className="text-white font-bold text-sm">Top Rated</p><p className="text-text-muted text-xs">Expert Mechanics</p></div>
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="py-24 bg-soft-dark relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-gold text-sm font-bold tracking-widest uppercase mb-3 block">What We Offer</span>
-            <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">Our Premium Services</h2>
-            <p className="text-text-muted">Comprehensive automotive care tailored to your vehicle's specific needs, delivered by industry experts.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {SERVICES.map((service, idx) => (
-              <motion.div key={service.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-50px' }} transition={{ delay: idx * 0.1 }}
-                className="bg-card rounded-3xl p-8 border border-white/5 hover:border-gold/30 hover:shadow-[0_0_30px_rgba(200,155,60,0.15)] transition-all duration-300 group relative overflow-hidden">
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} rounded-bl-full -z-10 opacity-50 group-hover:scale-110 transition-transform`} />
-                <div className="w-16 h-16 rounded-2xl bg-soft-dark border border-white/5 flex items-center justify-center mb-6 group-hover:bg-gold/10 transition-colors">
-                  <service.icon className="text-3xl text-gold" />
-                </div>
-                <h3 className="text-xl font-heading font-bold text-white mb-3 group-hover:text-gold transition-colors">{service.title}</h3>
-                <p className="text-text-muted mb-6 line-clamp-2">{service.desc}</p>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-2xl font-bold text-white">{service.price}</span>
-                  <Link to="/booking" className="w-10 h-10 rounded-full bg-soft-dark border border-white/10 flex items-center justify-center text-gold group-hover:bg-gold group-hover:text-deep-black transition-all">
-                    <FaArrowRight />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mechanics Section */}
-      <section className="py-24 bg-deep-black relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-full bg-gold/5 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
-            <div className="max-w-2xl">
-              <span className="text-gold text-sm font-bold tracking-widest uppercase mb-3 block">Expert Team</span>
-              <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">Meet Our Master Mechanics</h2>
-              <p className="text-text-muted">Certified professionals with years of experience working on luxury and premium vehicles.</p>
             </div>
-            <Link to="/mechanics" className="px-6 py-3 border border-white/10 rounded-xl text-white font-semibold hover:bg-white/5 transition-colors whitespace-nowrap">View All Mechanics</Link>
+          </motion.div>
+        </div>
+
+        {/* Brand logos strip — Infinite Marquee */}
+        <div style={{ 
+          position: 'relative', zIndex: 2, 
+          borderTop: '1px solid rgba(0,0,0,0.06)', 
+          background: 'rgba(255,255,255,0.60)', 
+          backdropFilter: 'blur(12px)', 
+          WebkitBackdropFilter: 'blur(12px)',
+          padding: '1.2rem 0',
+          overflow: 'hidden' 
+        }}>
+          <motion.div 
+            animate={{ x: [0, -1000] }}
+            transition={{ 
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 25,
+                ease: "linear",
+              }
+            }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '4rem', 
+              width: 'max-content',
+              padding: '0 2rem'
+            }}
+          >
+            {/* Render logos twice for seamless loop */}
+            {[...BRAND_LOGOS, ...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, idx) => (
+              <span key={`${brand.name}-${idx}`} style={{ 
+                fontSize: '0.95rem', 
+                fontWeight: 700, 
+                color: 'var(--color-dark-graphite)', 
+                letterSpacing: '0.08em', 
+                opacity: 0.5, 
+                fontStyle: brand.name === 'Ford' ? 'italic' : 'normal',
+                whiteSpace: 'nowrap'
+              }}>
+                {brand.symbol}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── STATS STRIP ── */}
+      <section style={{ background: 'var(--color-bg)', padding: '3rem 2rem', borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'center' }}>
+          {STATS.map((stat, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+              <p style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 0.25rem' }}>{stat.value}</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── SERVICES SECTION (3D Carousel) ── */}
+      <section 
+        style={{ 
+          background: 'var(--color-bg)', 
+          padding: '6rem 0', 
+          overflow: 'hidden', 
+          position: 'relative',
+          minHeight: '800px'
+        }}
+      >
+        {/* Header */}
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', width: '100%', marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 300, color: 'var(--color-text-muted)', opacity: 0.5 }}>01</span>
+            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: 'var(--color-text-main)', margin: 0, textTransform: 'capitalize' }}>Our services</h2>
+          </div>
+          <div style={{ width: '100%', height: '1px', background: 'rgba(0,0,0,0.08)', marginTop: '1.5rem' }} />
+        </div>
+
+        {/* 3D Stack Container with Buttons */}
+        <div style={{ position: 'relative', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          
+          {/* Navigation Buttons */}
+          <div style={{ 
+            position: 'absolute', top: '50%', left: '5%', right: '5%', transform: 'translateY(-50%)', 
+            display: 'flex', justifyContent: 'space-between', width: '90%', zIndex: 50, pointerEvents: 'none' 
+          }}>
+            <button 
+              onClick={prevService}
+              style={{ 
+                width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', 
+                border: '1px solid rgba(217,137,106,0.3)', color: 'var(--color-primary)', cursor: 'pointer', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto',
+                transition: 'all 0.3s', boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.85)'; e.currentTarget.style.color = 'var(--color-primary)' }}
+            >
+              <FaArrowRight style={{ transform: 'rotate(180deg)' }} />
+            </button>
+            <button 
+              onClick={nextService}
+              style={{ 
+                width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', 
+                border: '1px solid rgba(217,137,106,0.3)', color: 'var(--color-primary)', cursor: 'pointer', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto',
+                transition: 'all 0.3s', boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.85)'; e.currentTarget.style.color = 'var(--color-primary)' }}
+            >
+              <FaArrowRight />
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {MECHANICS.map((mechanic, idx) => (
-              <motion.div key={mechanic.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
-                className="bg-card rounded-3xl p-6 border border-white/5 group hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-5 mb-6">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-soft-dark to-deep-black border-2 border-gold/30 flex items-center justify-center text-2xl font-heading font-bold text-gold group-hover:border-gold transition-colors shadow-[0_0_15px_rgba(200,155,60,0.2)]">
-                    {mechanic.avatar}
+          <div style={{ 
+            height: '100%', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', 
+            justifyContent: 'center', perspective: '1500px', transformStyle: 'preserve-3d' 
+          }}>
+            {services.map((service, idx) => {
+              const offset = idx - activeIndex;
+              const absOffset = Math.abs(offset);
+              const isCenter = offset === 0;
+
+              const name = service.name || service.title;
+              const price = service.basePrice ? `$${service.basePrice}` : service.price;
+              const desc = service.description || service.desc;
+              const image = service.image || getServiceImage(name);
+
+              return (
+                <motion.div
+                  key={service._id || service.id}
+                  animate={{
+                    x: offset * 340, // Horizontal spacing
+                    scale: 1 - absOffset * 0.15,
+                    rotateY: offset * -25,
+                    zIndex: 10 - absOffset,
+                    opacity: 1 - absOffset * 0.4,
+                  }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  style={{
+                    position: 'absolute',
+                    width: '360px', 
+                    height: '460px', 
+                    borderRadius: '32px', 
+                    overflow: 'hidden',
+                    background: 'var(--color-surface)', 
+                    boxShadow: isCenter ? '0 40px 80px rgba(0,0,0,0.8)' : '0 10px 30px rgba(0,0,0,0.4)',
+                    cursor: 'pointer',
+                    border: isCenter ? '1px solid rgba(217,137,106,0.3)' : '1px solid rgba(255,255,255,0.05)'
+                  }}
+                  onClick={() => setActiveIndex(idx)}
+                >
+                  {/* Service Image (Mapped from Backend Name) */}
+                  <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isCenter ? 1 : 0.5 }} />
+                  
+                  {/* Overlay */}
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(22,24,29,0.95) 0%, transparent 70%)' }} />
+
+                  {/* Top Label */}
+                  <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', background: 'var(--color-text-main)', padding: '0.4rem 1.1rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-bg)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {name}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-heading font-bold text-white">{mechanic.name}</h3>
-                    <p className="text-sm text-gold font-medium">{mechanic.specialty}</p>
+
+                  {/* Service Content (Visible on center card) */}
+                  <motion.div 
+                    animate={{ opacity: isCenter ? 1 : 0, y: isCenter ? 0 : 20 }}
+                    style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }}
+                  >
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>{desc}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Starting from</span>
+                        <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>{price}</span>
+                      </div>
+                      <Link to="/booking" style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--color-primary)', color: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'transform 0.2s' }}>
+                        <FaArrowRight style={{ transform: 'rotate(-45deg)' }} />
+                      </Link>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Info & CTA */}
+        <div style={{ maxWidth: '1200px', margin: '5rem auto 0', padding: '0 2rem', textAlign: 'center', width: '100%' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.05rem', lineHeight: 1.8, maxWidth: '750px', margin: '0 auto 2.5rem', fontWeight: 500 }}>
+            Precision engineering meets high-end automotive care. Explore our specialized services tailored for premium vehicles.
+          </p>
+          <Link to="/services" style={{ 
+            display: 'inline-block', 
+            background: 'transparent', 
+            border: '2px solid var(--color-primary)', 
+            color: 'var(--color-primary)', 
+            padding: '0.9rem 2.8rem', 
+            borderRadius: '12px', 
+            fontWeight: 800, 
+            textDecoration: 'none', 
+            transition: 'all 0.3s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontSize: '0.85rem'
+          }}>
+            View All Services & Prices
+          </Link>
+        </div>
+      </section>
+
+      {/* ── MECHANICS ── */}
+      <section style={{ background: 'var(--color-surface)', padding: '5rem 2rem', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3rem', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <div>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-primary)', display: 'block', marginBottom: '0.6rem' }}>Expert Team</span>
+              <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.4rem)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 0.5rem' }}>Meet Our Master Mechanics</h2>
+              <p style={{ color: 'var(--color-text-muted)', maxWidth: '420px', lineHeight: 1.65, fontSize: '0.9rem', margin: 0 }}>
+                Certified professionals with years of experience across all makes and models.
+              </p>
+            </div>
+            <Link to="/mechanics" style={{ padding: '0.65rem 1.5rem', border: '1.5px solid var(--color-primary)', borderRadius: '10px', color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              View All Mechanics
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            {mechanicsData.map((mechanic, idx) => {
+              const mecId   = mechanic._id || mechanic.id
+              const mecName = mechanic.name
+              const mecSpec = mechanic.specialization || mechanic.specialty || 'Mechanic'
+              const mecDesc = mechanic.bio || mechanic.desc || `${mecName} is a certified mechanic at AutoMend.`
+              const mecRating = mechanic.rating || '5.0'
+              const mecExp = mechanic.experience ? `${mechanic.experience} Yrs` : mechanic.experienceYears ? `${mechanic.experienceYears} Yrs` : 'Expert'
+              const mecReviews = mechanic.reviews || mechanic.totalReviews || 0
+              const mecAvatar = mechanic.profilePhoto ? null : (mechanic.avatar || mecName?.charAt(0)?.toUpperCase())
+              return (
+                <motion.div key={mecId}
+                  onClick={() => navigate(`/mechanic/${mecId}`)}
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
+                  style={{
+                    background: 'var(--color-surface)', borderRadius: '16px', padding: '1.75rem',
+                    border: '1px solid var(--color-border)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.25s, box-shadow 0.25s',
+                  }}
+                  whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.12)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                    {mechanic.profilePhoto ? (
+                      <img src={mechanic.profilePhoto} alt={mecName}
+                        style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--color-border)' }} />
+                    ) : (
+                      <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 800, color: '#fff', flexShrink: 0 }}>
+                        {mecAvatar}
+                      </div>
+                    )}
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-dark-graphite)', margin: '0 0 0.2rem' }}>{mecName}</h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600, margin: 0 }}>{mecSpec}</p>
+                    </div>
                   </div>
-                </div>
-                <p className="text-text-muted text-sm mb-6 leading-relaxed">{mechanic.desc}</p>
-                <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                  <div className="flex items-center gap-2"><FaStar className="text-gold" /><span className="font-bold text-white">{mechanic.rating}</span><span className="text-xs text-text-muted">({mechanic.reviews} reviews)</span></div>
-                  <span className="text-sm font-medium text-white bg-soft-dark px-3 py-1 rounded-full border border-white/10">{mechanic.experience}</span>
-                </div>
-              </motion.div>
-            ))}
+                  <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)', lineHeight: 1.65, marginBottom: '1.25rem' }}>{mecDesc}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <FaStar style={{ color: 'var(--color-primary)', fontSize: '0.85rem' }} />
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-dark-graphite)' }}>{mecRating}</span>
+                      {mecReviews > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>({mecReviews} reviews)</span>}
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary)', background: 'rgba(217,137,106,0.12)', padding: '0.25rem 0.7rem', borderRadius: '999px' }}>
+                      {mecExp}
+                    </span>
+                  </div>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
+
+      {/* ── CTA BANNER ── */}
+      <section style={{ background: 'var(--color-bg)', padding: '5rem 2rem', textAlign: 'center', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-primary)', display: 'block', marginBottom: '0.75rem' }}>Ready to get started?</span>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 1rem' }}>
+            Book your car service today
+          </h2>
+          <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.95rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
+            Certified mechanics, transparent pricing, at your location or our garage.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/booking" style={{ padding: '0.85rem 2.2rem', background: 'var(--color-primary)', color: 'var(--color-bg)', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.2s', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+              Book Now <FaArrowRight />
+            </Link>
+            <Link to="/services" style={{ padding: '0.85rem 2.2rem', background: 'transparent', border: '1.5px solid rgba(0,0,0,0.15)', color: 'var(--color-dark-graphite)', borderRadius: '10px', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
+              Explore Services
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
     </main>
   )
 }

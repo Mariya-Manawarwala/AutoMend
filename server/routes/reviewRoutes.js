@@ -4,6 +4,7 @@ import {
   getGarageReviews,
   getMechanicReviews,
   getAllReviews,
+  deleteReview,
 } from "../controllers/reviewController.js";
 import {
   protect,
@@ -18,5 +19,6 @@ router.get("/garage", getGarageReviews);
 router.get("/mechanic/:mechanicId", getMechanicReviews);
 
 router.get("/admin", protect, forAdmin, getAllReviews);
+router.delete("/:id", protect, deleteReview);
 
 export default router;

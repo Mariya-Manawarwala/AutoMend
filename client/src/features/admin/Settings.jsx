@@ -1,9 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FaSave, FaWarehouse, FaMapMarkerAlt, FaEnvelope, FaPhone } from 'react-icons/fa'
 import { useToast } from '../../context/ToastContext'
+import LuxurySelect from '../../components/common/LuxurySelect'
+import { useSystemSettings, useUpdateSystemSettings } from '../../hooks/useDashboardHooks'
+import { useSettings } from '../../context/SettingsContext'
 
 export default function Settings() {
   const { addToast } = useToast()
+  const { refreshSettings } = useSettings()
+  
+  const { data: settings, isLoading } = useSystemSettings()
+  const updateSettingsMutation = useUpdateSystemSettings()
+
   const [form, setForm] = useState({
     garageName: 'AutoMend Premium Auto Care',
     email: 'admin@automend.com',
@@ -14,8 +22,34 @@ export default function Settings() {
     currency: 'INR (₹)'
   })
 
+  useEffect(() => {
+    if (settings) {
+      setForm({
+        garageName: settings.garageName || '',
+        email: settings.email || '',
+        phone: settings.phone || '',
+        address: settings.address || '',
+        operatingHours: settings.operatingHours || '',
+        taxRate: settings.taxRate || '',
+        currency: settings.currency || 'INR (₹)'
+      })
+    }
+  }, [settings])
+
   const handleSave = () => {
-    addToast('Global settings updated successfully.', 'success')
+    updateSettingsMutation.mutate(form, {
+      onSuccess: () => {
+        addToast('Global settings updated successfully.', 'success')
+        refreshSettings()
+      },
+      onError: (err) => {
+        addToast(err.response?.data?.message || 'Failed to update settings', 'error')
+      }
+    })
+  }
+
+  if (isLoading) {
+    return <div className="max-w-4xl pb-10"><div className="h-[600px] skeleton rounded-3xl" /></div>
   }
 
   return (
@@ -66,20 +100,26 @@ export default function Settings() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
-            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 block">Tax Rate (%)</label>
-            <input type="number" value={form.taxRate} onChange={e => setForm({...form, taxRate: e.target.value})} className="w-full px-4 py-3 bg-soft-dark border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-gold/50 transition-all" />
-          </div>
-          <div>
             <label className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 block">Base Currency</label>
-            <select value={form.currency} onChange={e => setForm({...form, currency: e.target.value})} className="w-full px-4 py-3 bg-soft-dark border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-gold/50 transition-all">
-              <option>INR (₹)</option><option>USD ($)</option><option>EUR (€)</option>
-            </select>
+            <LuxurySelect 
+              value={form.currency} 
+              onChange={val => setForm({...form, currency: val})}
+              options={[
+                { value: 'INR (₹)', label: 'INR (₹)' },
+                { value: 'USD ($)', label: 'USD ($)' },
+                { value: 'EUR (€)', label: 'EUR (€)' }
+              ]}
+            />
           </div>
         </div>
 
         <div className="pt-6 border-t border-white/5 flex justify-end">
-          <button onClick={handleSave} className="px-8 py-3 bg-gradient-to-r from-gold to-light-gold text-deep-black rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(200,155,60,0.5)] hover:scale-105 transition-all flex items-center gap-2">
-            <FaSave /> Save Global Settings
+          <button 
+            onClick={handleSave} 
+            disabled={updateSettingsMutation.isPending}
+            className="px-8 py-3 bg-gradient-to-r from-gold to-light-gold text-deep-black rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(200,155,60,0.5)] hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+          >
+            <FaSave /> {updateSettingsMutation.isPending ? 'Saving...' : 'Save Global Settings'}
           </button>
         </div>
 

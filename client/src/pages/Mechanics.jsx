@@ -58,9 +58,9 @@ export default function Mechanics() {
                   </div>
                   <span className="text-text-muted text-xs font-body">{m.reviews} reviews</span>
                 </div>
-                <button className="w-full py-3.5 border border-gold/30 text-gold font-heading font-semibold text-sm rounded-xl hover:bg-gold/10 hover:border-gold/50 transition-all duration-300">
+                <Link to={`/mechanic/${m.id}`} className="block text-center w-full py-3.5 border border-gold/30 text-gold font-heading font-semibold text-sm rounded-xl hover:bg-gold/10 hover:border-gold/50 transition-all duration-300">
                   View Full Profile
-                </button>
+                </Link>
               </motion.div>
             ))}
           </div>

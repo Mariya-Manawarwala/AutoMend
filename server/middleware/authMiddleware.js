@@ -15,6 +15,12 @@ export const protect = async (req, res, next) => {
         res.status(401);
         throw new Error("User not found");
       }
+
+      // Update last seen and online status
+      req.user.lastSeen = Date.now();
+      req.user.isOnline = true;
+      req.user.save().catch(err => console.error("Error updating lastSeen:", err));
+
       next();
     } catch (error) {
       res.status(401);

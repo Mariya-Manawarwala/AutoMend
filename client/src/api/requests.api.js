@@ -1,18 +1,21 @@
-import axios from '../lib/axios';
+import api from '../lib/axios';
+
+export const getMyRequests = async () => {
+  const response = await api.get('/requests/my');
+  return response.data;
+};
 
 export const createRequest = async (requestData) => {
-  const response = await axios.post('/requests', requestData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const response = await api.post('/requests', requestData);
   return response.data;
 };
 
-export const getRequests = async (role) => {
-  const response = await axios.get(`/requests?role=${role}`);
+export const getAvailableRequests = async () => {
+  const response = await api.get('/requests/available');
   return response.data;
 };
 
-export const acceptRequest = async (requestId) => {
-  const response = await axios.post(`/requests/${requestId}/accept`);
+export const getRequestDetails = async (id) => {
+  const response = await api.get(`/requests/${id}`);
   return response.data;
 };

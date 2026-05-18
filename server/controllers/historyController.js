@@ -16,7 +16,7 @@ export const getHistory = async (req, res) => {
 
     payments = await Payment.find({
       customerId: req.user._id,
-      paymentStatus: "Completed",
+      paymentStatus: "completed",
     });
 
     const history = jobs.map((job) => {
@@ -48,7 +48,7 @@ export const getHistory = async (req, res) => {
 
     payments = await Payment.find({
       mechanicId: req.user._id,
-      paymentStatus: "Completed",
+      paymentStatus: "completed",
     });
 
     const history = jobs.map((job) => {
@@ -76,7 +76,7 @@ export const getHistory = async (req, res) => {
       .populate("requestId")
       .sort({ completedAt: -1 });
 
-    payments = await Payment.find({ paymentStatus: "Completed" });
+    payments = await Payment.find({ paymentStatus: "completed" });
 
     const history = jobs.map((job) => {
       const payment = payments.find(

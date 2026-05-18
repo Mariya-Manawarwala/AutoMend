@@ -2,19 +2,13 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheck, FaBell, FaCheckDouble } from 'react-icons/fa'
 
-const INITIAL_NOTIFICATIONS = [
-  { id: 1, text: 'Your request REQ-1024 has been accepted by James R.', time: '2 min ago', read: false },
-  { id: 2, text: 'Your payment of ₹6,850 was successful.', time: '1 hour ago', read: false },
-  { id: 3, text: 'Your request REQ-1022 has been completed.', time: '3 hours ago', read: true },
-  { id: 4, text: 'New coupon WELCOME10 is available for you!', time: '1 day ago', read: true },
-  { id: 5, text: 'Your review has been submitted successfully.', time: '2 days ago', read: true },
-]
+const INITIAL_NOTIFICATIONS = []
 
-import { useNotifications, useMarkRead } from '../../hooks/useNotificationHooks'
+import { useNotifications, useMarkAsRead } from '../../hooks/useNotificationHooks'
 
 export default function Notifications() {
   const { data: notifications = [], isLoading } = useNotifications()
-  const markReadMutation = useMarkRead()
+  const markReadMutation = useMarkAsRead()
 
   const handleMarkAsRead = (id) => {
     markReadMutation.mutate(id)

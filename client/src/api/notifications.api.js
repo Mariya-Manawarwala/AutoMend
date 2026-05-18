@@ -1,11 +1,16 @@
-import axios from '../lib/axios';
+import api from '../lib/axios';
 
 export const getMyNotifications = async () => {
-  const response = await axios.get('/notifications/my');
+  const response = await api.get('/notifications/my');
   return response.data;
 };
 
-export const markAsRead = async (notificationId) => {
-  const response = await axios.patch(`/notifications/${notificationId}`);
+export const markNotificationAsRead = async (id) => {
+  const response = await api.patch(`/notifications/${id}`);
+  return response.data;
+};
+
+export const markAllAsRead = async () => {
+  const response = await api.patch('/notifications/read-all');
   return response.data;
 };
