@@ -53,8 +53,14 @@ app.use("/api/chat", chatRoutes);
 
 app.use("/invoices", express.static(path.join(__dirname, "invoices")));
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("AutoMend API is running");
+});
+
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 app.use(errorHandler);

@@ -52,13 +52,8 @@ export default function Services() {
     const fetchServices = async () => {
       try {
         const data = await getAllServices()
-        if (data && Array.isArray(data)) {
-          setServices(data.length > 0 ? data : MOCK_SERVICES)
-        } else {
-          setServices(MOCK_SERVICES)
-        }
+        setServices(data && data.length > 0 ? data : MOCK_SERVICES)
       } catch (err) {
-        console.error('Failed to fetch services:', err)
         setServices(MOCK_SERVICES)
       } finally {
         setLoading(false)
@@ -86,7 +81,7 @@ export default function Services() {
         <div className="absolute inset-0 bg-gradient-to-b from-warm-brown/5 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {(Array.isArray(services) ? services : []).map((svc, i) => {
+            {services.map((svc, i) => {
               const name = svc.name || svc.title;
               const desc = svc.description || svc.desc;
               const image = svc.image || getServiceImage(name);
