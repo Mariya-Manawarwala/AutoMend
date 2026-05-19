@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaStar, FaPlus, FaTimes, FaUserCircle, FaTrash } from 'react-icons/fa'
 import { useToast } from '../../context/ToastContext'
-import axios from 'axios'
+import api from '../../lib/axios'
 
 export default function Reviews() {
   const { addToast } = useToast()
@@ -17,13 +17,10 @@ export default function Reviews() {
   const handleDelete = async (reviewId) => {
     if (!window.confirm(`Are you sure you want to delete your ${tab} review?`)) return
     try {
-      const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/reviews/${reviewId}?target=${tab}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.delete(`/reviews/${reviewId}?target=${tab}`)
       addToast(`Your ${tab} review has been deleted successfully.`, 'success')
       // Refresh local reviews
-      const { data } = await axios.get('http://localhost:8080/api/reviews/garage')
+      const { data } = await api.get('/reviews/garage')
       setReviewsList(data.reviews || [])
     } catch (err) {
       addToast('Failed to delete review', 'error')
@@ -40,7 +37,7 @@ export default function Reviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const { data } = await axios.get('http://localhost:8080/api/reviews/garage')
+        const { data } = await api.get('/reviews/garage')
         setReviewsList(data.reviews || [])
       } catch (err) {
         addToast('Failed to load platform reviews', 'error')

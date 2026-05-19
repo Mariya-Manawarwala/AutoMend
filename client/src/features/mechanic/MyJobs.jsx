@@ -427,7 +427,10 @@ export default function MyJobs() {
                     <FaCheckCircle className="text-sm" /> Invoice Generated
                   </span>
                   <button 
-                    onClick={() => window.open(`http://localhost:8080${job.invoiceUrl}`, '_blank')} 
+                    onClick={() => {
+                      const host = import.meta.env.DEV ? 'http://localhost:8080' : '';
+                      window.open(`${host}${job.invoiceUrl}`, '_blank');
+                    }} 
                     className="px-6 py-3.5 bg-soft-dark border border-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:border-gold/30 hover:text-gold transition-colors"
                   >
                     View & Print Invoice

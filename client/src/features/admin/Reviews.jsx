@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaStar, FaWrench, FaWarehouse, FaTrash, FaCheck } from 'react-icons/fa'
 import { useToast } from '../../context/ToastContext'
-import axios from 'axios'
+import api from '../../lib/axios'
 
 export default function Reviews() {
   const { addToast } = useToast()
@@ -12,10 +12,7 @@ export default function Reviews() {
 
   const fetchReviews = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const { data } = await axios.get('http://localhost:8080/api/reviews/admin', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const { data } = await api.get('/reviews/admin')
       setReviewsList(data || [])
     } catch (err) {
       addToast('Failed to fetch platform reviews', 'error')
@@ -31,10 +28,7 @@ export default function Reviews() {
   const handleAction = async (dbId, action, target) => {
     if (action === 'delete') {
       try {
-        const token = localStorage.getItem('token')
-        await axios.delete(`http://localhost:8080/api/reviews/${dbId}?target=${target.toLowerCase()}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        await api.delete(`/reviews/${dbId}?target=${target.toLowerCase()}`)
         addToast(`${target} review deleted permanently.`, 'info')
         fetchReviews()
       } catch (err) {

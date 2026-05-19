@@ -19,7 +19,7 @@ export function SettingsProvider({ children }) {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+      const base = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8080/api' : '/api')
       const { data } = await axios.get(`${base}/admin/dashboard/settings/public`)
       if (data) {
         setSettings({
