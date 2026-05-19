@@ -36,10 +36,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send("AutoMend API is running");
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
@@ -56,6 +52,22 @@ app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/chat", chatRoutes);
 
 app.use("/invoices", express.static(path.join(__dirname, "invoices")));
+
+// Serve compiled client static assets
+const clientDistPath = path.join(__dirname, "../client/dist");
+app.use(express.static(clientDistPath));
+
+// Fallback all other client-side routing traffic to React index.html
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/invoices")) {
+    return next();
+  }
+  res.sendFile(path.join(clientDistPath, "index.html"), (err) => {
+    if (err) {
+      next();
+    }
+  });
+});
 
 app.use(errorHandler);
 
