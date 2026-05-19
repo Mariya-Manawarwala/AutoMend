@@ -58,7 +58,7 @@ const clientDistPath = path.join(__dirname, "../client/dist");
 app.use(express.static(clientDistPath));
 
 // Fallback all other client-side routing traffic to React index.html
-app.get("/*", (req, res, next) => {
+app.get("/*splat", (req, res, next) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/invoices")) {
     return next();
   }
