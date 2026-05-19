@@ -428,7 +428,7 @@ export default function MyJobs() {
                   </span>
                   <button 
                     onClick={() => {
-                      const host = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+                      const host = '';
                       window.open(`${host}${job.invoiceUrl}`, '_blank');
                     }} 
                     className="px-6 py-3.5 bg-soft-dark border border-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:border-gold/30 hover:text-gold transition-colors"

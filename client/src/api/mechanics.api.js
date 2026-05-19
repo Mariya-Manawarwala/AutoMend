@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:8080/api';
+const BASE = '';
 
 // Public: fetch all mechanics (no auth)
 export const getPublicMechanics = async (limit = 3) => {
