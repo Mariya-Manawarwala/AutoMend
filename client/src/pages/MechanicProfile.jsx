@@ -20,14 +20,26 @@ export default function MechanicProfile() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const BASE = '';
+        const BASE = '/api';
         const [mechRes, revRes] = await Promise.all([
           axios.get(`${BASE}/users/mechanic/${id}`),
           axios.get(`${BASE}/reviews/mechanic/${id}`)
         ])
         setMechanic(mechRes.data)
-        setReviewsData(revRes.data)
+        
+        // Normalize reviewsData safely
+        const rawReviews = revRes.data
+        if (rawReviews && typeof rawReviews === 'object') {
+          setReviewsData({
+            averageRating: rawReviews.averageRating || 0,
+            totalReviews: rawReviews.totalReviews || 0,
+            reviews: Array.isArray(rawReviews.reviews) ? rawReviews.reviews : []
+          })
+        } else {
+          setReviewsData({ averageRating: 0, totalReviews: 0, reviews: [] })
+        }
       } catch (err) {
+        console.error('Failed to load mechanic profile details:', err)
         addToast('Failed to load mechanic details', 'error')
         navigate(-1)
       } finally {
@@ -139,7 +151,7 @@ export default function MechanicProfile() {
             <div>
               <h2 className="text-xs font-black text-gold uppercase tracking-[0.3em] mb-6">Expert Skills & Masteries</h2>
               <div className="flex flex-wrap gap-3">
-                {mechanic.skills?.map((skill, i) => (
+                {(Array.isArray(mechanic.skills) ? mechanic.skills : []).map((skill, i) => (
                   <div key={i} className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 group hover:border-gold/30 transition-all">
                     <div className="w-2 h-2 rounded-full bg-gold shadow-[0_0_10px_#C9A84C]" />
                     <span className="text-sm font-bold text-white">{skill}</span>
@@ -199,7 +211,7 @@ export default function MechanicProfile() {
             <div className="space-y-6 pt-6 border-t border-white/5">
               <h2 className="text-xs font-black text-gold uppercase tracking-[0.3em] mb-4">Customer Reviews</h2>
               <div className="space-y-4">
-                {reviewsData.reviews?.length > 0 ? (
+                {Array.isArray(reviewsData?.reviews) && reviewsData.reviews.length > 0 ? (
                   reviewsData.reviews.map((rev, idx) => (
                     <div key={rev._id || idx} className="p-6 bg-soft-dark/20 border border-white/5 rounded-2xl space-y-3">
                       <div className="flex items-center justify-between">

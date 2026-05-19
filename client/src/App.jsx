@@ -7,6 +7,7 @@ import Footer from './components/Footer'
 import FloatingActionButton from './components/FloatingActionButton'
 import LoadingScreen from './components/LoadingScreen'
 import { ProtectedRoute, RoleBasedRoute } from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const Home = lazy(() => import('./pages/Home'))
 const Services = lazy(() => import('./pages/Services'))
@@ -75,57 +76,59 @@ export default function App() {
         <>
           {!hideLayout && <Navbar />}
 
-          <Suspense fallback={<PageLoader />}>
-            <AnimatePresence mode="wait">
-              <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-                <Route path="/services" element={<PageWrapper><Services /></PageWrapper>} />
-                <Route path="/mechanics" element={<PageWrapper><Mechanics /></PageWrapper>} />
-                <Route path="/about" element={<PageWrapper><AboutContact /></PageWrapper>} />
-                <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-                <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
-                
-                <Route path="/dashboard" element={<DashboardRedirect />} />
-                <Route 
-                  path="/dashboard/customer/*" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['customer']}>
-                        <PageWrapper><CustomerDashboard /></PageWrapper>
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
+                  <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+                  <Route path="/services" element={<PageWrapper><Services /></PageWrapper>} />
+                  <Route path="/mechanics" element={<PageWrapper><Mechanics /></PageWrapper>} />
+                  <Route path="/about" element={<PageWrapper><AboutContact /></PageWrapper>} />
+                  <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+                  <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+                  
+                  <Route path="/dashboard" element={<DashboardRedirect />} />
+                  <Route 
+                    path="/dashboard/customer/*" 
+                    element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['customer']}>
+                          <PageWrapper><CustomerDashboard /></PageWrapper>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } 
+                  />
 
-                <Route 
-                  path="/dashboard/mechanic/*" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['mechanic']}>
-                        <PageWrapper><MechanicDashboard /></PageWrapper>
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+                  <Route 
+                    path="/dashboard/mechanic/*" 
+                    element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['mechanic']}>
+                          <PageWrapper><MechanicDashboard /></PageWrapper>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } 
+                  />
 
-                <Route 
-                  path="/dashboard/admin/*" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['admin']}>
-                        <PageWrapper><AdminDashboard /></PageWrapper>
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+                  <Route 
+                    path="/dashboard/admin/*" 
+                    element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin']}>
+                          <PageWrapper><AdminDashboard /></PageWrapper>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } 
+                  />
 
-                <Route path="/booking" element={<ProtectedRoute><PageWrapper><BookingFlow /></PageWrapper></ProtectedRoute>} />
-                <Route path="/contact" element={<PageWrapper><AboutContact /></PageWrapper>} />
-                <Route path="/ai-assistant" element={<PageWrapper><AIChatAssistant /></PageWrapper>} />
-                <Route path="/mechanic/:id" element={<PageWrapper><MechanicProfile /></PageWrapper>} />
-              </Routes>
-            </AnimatePresence>
-          </Suspense>
+                  <Route path="/booking" element={<ProtectedRoute><PageWrapper><BookingFlow /></PageWrapper></ProtectedRoute>} />
+                  <Route path="/contact" element={<PageWrapper><AboutContact /></PageWrapper>} />
+                  <Route path="/ai-assistant" element={<PageWrapper><AIChatAssistant /></PageWrapper>} />
+                  <Route path="/mechanic/:id" element={<PageWrapper><MechanicProfile /></PageWrapper>} />
+                </Routes>
+              </AnimatePresence>
+            </Suspense>
+          </ErrorBoundary>
 
           {!hideLayout && <Footer />}
           {!hideLayout && <FloatingActionButton />}

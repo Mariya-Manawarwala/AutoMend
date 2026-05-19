@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE = '';
+const BASE = '/api';
 
 // Public: fetch all mechanics (no auth)
 export const getPublicMechanics = async (limit = 3) => {

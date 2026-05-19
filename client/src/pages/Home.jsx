@@ -76,16 +76,29 @@ export default function Home() {
   // Fetch real mechanics from backend (fallback to mock)
   useEffect(() => {
     getPublicMechanics(3)
-      .then(data => { if (data?.length > 0) setMechanicsData(data) })
-      .catch(() => {}) // silently use mock on failure
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          setMechanicsData(data.length > 0 ? data : MOCK_MECHANICS)
+        } else {
+          setMechanicsData(MOCK_MECHANICS)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch mechanics:', err)
+        setMechanicsData(MOCK_MECHANICS)
+      })
   }, [])
 
   const nextService = () => {
-    setActiveIndex(prev => (prev + 1) % services.length)
+    const len = Array.isArray(services) ? services.length : 0
+    if (len === 0) return
+    setActiveIndex(prev => (prev + 1) % len)
   }
 
   const prevService = () => {
-    setActiveIndex(prev => (prev - 1 + services.length) % services.length)
+    const len = Array.isArray(services) ? services.length : 0
+    if (len === 0) return
+    setActiveIndex(prev => (prev - 1 + len) % len)
   }
   const handleQuickSearch = () => {
     navigate('/booking', { 
@@ -348,7 +361,7 @@ export default function Home() {
             height: '100%', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', 
             justifyContent: 'center', perspective: '1500px', transformStyle: 'preserve-3d' 
           }}>
-            {services.map((service, idx) => {
+            {(Array.isArray(services) ? services : []).map((service, idx) => {
               const offset = idx - activeIndex;
               const absOffset = Math.abs(offset);
               const isCenter = offset === 0;
@@ -456,7 +469,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mechanicsData.map((mechanic, idx) => {
+            {(Array.isArray(mechanicsData) ? mechanicsData : []).map((mechanic, idx) => {
               const mecId   = mechanic._id || mechanic.id
               const mecName = mechanic.name
               const mecSpec = mechanic.specialization || mechanic.specialty || 'Mechanic'

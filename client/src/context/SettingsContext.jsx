@@ -19,7 +19,7 @@ export function SettingsProvider({ children }) {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const base = ''
+      const base = '/api'
       const { data } = await axios.get(`${base}/admin/dashboard/settings/public`)
       if (data) {
         setSettings({
