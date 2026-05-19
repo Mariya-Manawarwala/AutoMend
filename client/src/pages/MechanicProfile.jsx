@@ -20,7 +20,7 @@ export default function MechanicProfile() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8080/api' : '/api');
+        const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:8080/api';
         const [mechRes, revRes] = await Promise.all([
           axios.get(`${BASE}/users/mechanic/${id}`),
           axios.get(`${BASE}/reviews/mechanic/${id}`)
