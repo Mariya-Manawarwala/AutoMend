@@ -119,205 +119,194 @@ export default function Home() {
           />
         </svg>
       </div>
-
       {/* ── HERO ── */}
-      <section style={{
-        position: 'relative',
-        minHeight: '90vh',
-        paddingTop: '68px',
-        overflow: 'hidden',
-      }}>
-        {/* Full-background car image */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'url(https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=1800)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-          zIndex: 0,
-        }} />
-
-        {/* Overlay: Light translucent overlay — lets car show through softly */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(244,246,248,0.55) 0%, rgba(244,246,248,0.72) 50%, rgba(244,246,248,0.92) 100%)',
-          zIndex: 1,
-        }} />
+      <section className="relative min-h-[90vh] pt-24 pb-12 overflow-hidden flex items-center">
+        {/* Subtle background light leaks */}
+        <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary),transparent)] opacity-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-[radial-gradient(ellipse_at_bottom_left,_var(--color-accent),transparent)] opacity-10 pointer-events-none" />
 
         {/* Decorative asterisks */}
-        <span style={{ position: 'absolute', top: '12%', left: '15%', fontSize: '2.8rem', color: 'var(--color-primary)', fontWeight: 900, lineHeight: 1, userSelect: 'none', zIndex: 3, opacity: 0.8 }}>✳</span>
-        <span style={{ position: 'absolute', top: '10%', right: '18%', fontSize: '1rem', color: 'var(--color-primary)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
-        <span style={{ position: 'absolute', top: '70%', left: '10%', fontSize: '0.9rem', color: 'var(--color-accent)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
+        <span className="absolute top-[12%] left-[5%] text-4xl text-[var(--color-primary)] font-black select-none pointer-events-none opacity-40 animate-pulse hide-mobile">✳</span>
+        <span className="absolute top-[10%] right-[10%] text-sm text-[var(--color-primary)] font-bold select-none pointer-events-none opacity-40 hide-mobile">✦</span>
+        <span className="absolute bottom-[20%] left-[8%] text-base text-[var(--color-accent)] font-bold select-none pointer-events-none opacity-40 hide-mobile">✦</span>
 
         {/* Content layer */}
-        <div style={{
-          position: 'relative', zIndex: 2,
-          maxWidth: '1200px', margin: '0 auto', padding: '0 2rem',
-          minHeight: 'calc(90vh - 68px)',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          alignItems: 'center', textAlign: 'center',
-        }}>
-          {/* Centered content: heading + booking card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
-            style={{ maxWidth: '720px', width: '100%' }}
-          >
-            <h1 style={{ fontSize: 'clamp(2.4rem, 5vw, 3.2rem)', fontWeight: 800, color: 'var(--color-dark-graphite)', lineHeight: 1.15, marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-              Search, book, and<br />
-              <span style={{ color: 'var(--color-primary)' }}>fix your car easily</span>
-            </h1>
-            <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2.5rem', lineHeight: 1.7, maxWidth: '520px', margin: '0 auto 2.5rem' }}>
-              Get a certified mechanic wherever and whenever you need it — right from your phone or desktop.
-            </p>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-center">
+            
+            {/* Left Column: Text Content & Booking Form */}
+            <div className="lg:col-span-7 flex flex-col justify-center text-center lg:text-left order-1">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-fluid-hero font-extrabold text-[var(--color-dark-graphite)] tracking-tight mb-4 font-heading">
+                  Search, book, and<br />
+                  <span className="text-[var(--color-primary)]">fix your car easily</span>
+                </h1>
+                <p className="text-fluid-body text-[var(--color-text-muted)] mb-8 max-w-xl mx-auto lg:mx-0">
+                  Get a certified mechanic wherever and whenever you need it — right from your phone or desktop.
+                </p>
 
-            {/* Booking card — Frosted glass light */}
-            <div style={{ 
-              background: 'rgba(255,255,255,0.72)', 
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '16px', 
-              padding: '1rem 1.4rem', 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
-              margin: '0 auto',
-              maxWidth: '620px',
-              width: '100%',
-              border: '1px solid rgba(255,255,255,0.8)',
-            }}>
-              {/* Tabs */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.75rem', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.4rem' }}>
-                {SERVICE_TYPES.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveType(t.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '0.35rem',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      fontSize: '0.82rem', fontWeight: 600,
-                      color: activeType === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                      paddingBottom: '0.2rem',
-                      borderBottom: activeType === t.id ? '2px solid var(--color-primary)' : '2px solid transparent',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <t.icon style={{ fontSize: '0.85rem' }} />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+                {/* Booking card — Frosted glass luxury */}
+                <div className="w-full max-w-2xl mx-auto lg:mx-0 bg-white/70 backdrop-blur-md rounded-2xl p-5 md:p-6 border border-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+                  {/* Tabs */}
+                  <div className="flex justify-center lg:justify-start gap-6 mb-5 border-b border-black/5 pb-2">
+                    {SERVICE_TYPES.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setActiveType(t.id)}
+                        className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-xs md:text-sm font-bold pb-2 transition-all"
+                        style={{
+                          color: activeType === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                          borderBottom: activeType === t.id ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        }}
+                      >
+                        <t.icon className="text-xs" />
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Inputs row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr auto', gap: '0.75rem', alignItems: 'end', textAlign: 'left' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
-                    <FaMapMarkerAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
-                    <input type="text" placeholder="City, Area" value={location} onChange={e => setLocation(e.target.value)}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
+                  {/* Inputs row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end text-left">
+                    <div className="sm:col-span-4">
+                      <label className="block text-[10px] font-bold text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Location</label>
+                      <div className="flex items-center gap-2 border-b border-black/10 pb-1">
+                        <FaMapMarkerAlt className="text-[var(--color-primary)] text-xs flex-shrink-0" />
+                        <input
+                          type="text"
+                          placeholder="City, Area"
+                          value={location}
+                          onChange={e => setLocation(e.target.value)}
+                          className="w-full border-none outline-none text-xs md:text-sm text-[var(--color-text-main)] bg-transparent placeholder-black/30"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="sm:col-span-3">
+                      <label className="block text-[10px] font-bold text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Date</label>
+                      <div className="flex items-center gap-2 border-b border-black/10 pb-1">
+                        <FaCalendarAlt className="text-[var(--color-primary)] text-xs flex-shrink-0" />
+                        <input
+                          type="text"
+                          placeholder="Pick date"
+                          value={startDate}
+                          onChange={e => setStartDate(e.target.value)}
+                          onFocus={e => (e.target.type = 'date')}
+                          onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
+                          className="w-full border-none outline-none text-xs md:text-sm text-[var(--color-text-main)] bg-transparent placeholder-black/30"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <label className="block text-[10px] font-bold text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Time</label>
+                      <div className="flex items-center gap-2 border-b border-black/10 pb-1">
+                        <FaWrench className="text-[var(--color-primary)] text-xs flex-shrink-0" rotate={90} />
+                        <input
+                          type="text"
+                          placeholder="Pick time"
+                          value={endDate}
+                          onChange={e => setEndDate(e.target.value)}
+                          onFocus={e => (e.target.type = 'time')}
+                          onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
+                          className="w-full border-none outline-none text-xs md:text-sm text-[var(--color-text-main)] bg-transparent placeholder-black/30"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <button
+                        onClick={handleQuickSearch}
+                        className="w-full h-11 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-white flex items-center justify-center transition-all hover:scale-[1.03] active:scale-95 shadow-md border-none cursor-pointer"
+                      >
+                        <FaSearch className="mr-2 sm:mr-0" />
+                        <span className="sm:hidden font-bold text-xs uppercase tracking-wider">Search</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
-                    <FaCalendarAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
-                    <input type="text" placeholder="Pick date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                      onFocus={e => (e.target.type = 'date')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Time</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
-                    <FaWrench style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} rotate={90} />
-                    <input type="text" placeholder="Pick time" value={endDate} onChange={e => setEndDate(e.target.value)}
-                      onFocus={e => (e.target.type = 'time')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
-                  </div>
-                </div>
-                <button 
-                  onClick={handleQuickSearch}
-                  className="w-[38px] h-[38px] rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-[var(--color-bg)] flex items-center justify-center fontSize-0.9rem flex-shrink-0 transition-all hover:scale-110 active:scale-95"
-                >
-                  <FaSearch />
-                </button>
-              </div>
+              </motion.div>
             </div>
-          </motion.div>
-        </div>
 
-        {/* Brand logos strip — Infinite Marquee */}
-        <div style={{ 
-          position: 'relative', zIndex: 2, 
-          borderTop: '1px solid rgba(0,0,0,0.06)', 
-          background: 'rgba(255,255,255,0.60)', 
-          backdropFilter: 'blur(12px)', 
-          WebkitBackdropFilter: 'blur(12px)',
-          padding: '1.2rem 0',
-          overflow: 'hidden' 
-        }}>
-          <motion.div 
-            animate={{ x: [0, -1000] }}
-            transition={{ 
-              x: {
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: 25,
-                ease: "linear",
-              }
-            }}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '4rem', 
-              width: 'max-content',
-              padding: '0 2rem'
-            }}
-          >
-            {/* Render logos twice for seamless loop */}
-            {[...BRAND_LOGOS, ...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, idx) => (
-              <span key={`${brand.name}-${idx}`} style={{ 
-                fontSize: '0.95rem', 
-                fontWeight: 700, 
-                color: 'var(--color-dark-graphite)', 
-                letterSpacing: '0.08em', 
-                opacity: 0.5, 
-                fontStyle: brand.name === 'Ford' ? 'italic' : 'normal',
-                whiteSpace: 'nowrap'
-              }}>
-                {brand.symbol}
-              </span>
-            ))}
-          </motion.div>
+            {/* Right Column: Premium Car Image (Stacked below on mobile, proportional) */}
+            <div className="lg:col-span-5 flex justify-center order-2">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="relative w-full max-w-[480px] lg:max-w-none aspect-[4/3] md:aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=1200"
+                  alt="Premium car diagnostics and care"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                {/* Sleek bottom gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+              </motion.div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* ── STATS STRIP ── */}
-      <section style={{ background: 'var(--color-bg)', padding: '3rem 2rem', borderTop: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'center' }}>
+      {/* Brand logos strip — Infinite Marquee */}
+      <div className="relative z-10 border-t border-black/5 bg-white/60 backdrop-blur-md py-5 overflow-hidden">
+        <motion.div
+          animate={{ x: [0, -1000] }}
+          transition={{
+            x: {
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: 25,
+              ease: "linear",
+            }
+          }}
+          className="flex items-center gap-16 w-max px-8"
+        >
+          {/* Render logos twice for seamless loop */}
+          {[...BRAND_LOGOS, ...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, idx) => (
+            <span
+              key={`${brand.name}-${idx}`}
+              className="text-sm md:text-base font-bold text-[var(--color-dark-graphite)] tracking-widest opacity-40 whitespace-nowrap"
+              style={{ fontStyle: brand.name === 'Ford' ? 'italic' : 'normal' }}
+            >
+              {brand.symbol}
+            </span>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* ── STATS STRIP (Fully Responsive Grid) ── */}
+      <section className="bg-[var(--color-bg)] py-10 px-4 md:px-8 border-t border-b border-black/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {STATS.map((stat, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-              <p style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 0.25rem' }}>{stat.value}</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{stat.label}</p>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="p-2"
+            >
+              <p className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] mb-1">{stat.value}</p>
+              <p className="text-[10px] md:text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold">{stat.label}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* ── SERVICES SECTION (3D Carousel) ── */}
-      <section 
-        style={{ 
-          background: 'var(--color-bg)', 
-          padding: '6rem 0', 
-          overflow: 'hidden', 
-          position: 'relative',
-          minHeight: '800px'
-        }}
-      >
+      <section className="bg-[var(--color-bg)] py-16 md:py-24 overflow-hidden relative min-h-[750px]">
         {/* Header */}
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem', width: '100%', marginBottom: '4rem' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 300, color: 'var(--color-text-muted)', opacity: 0.5 }}>01</span>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: 'var(--color-text-main)', margin: 0, textTransform: 'capitalize' }}>Our services</h2>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mb-12">
+          <div className="flex items-baseline gap-4">
+            <span className="text-xl md:text-2xl font-light text-[var(--color-text-muted)] opacity-40 font-heading">01</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--color-text-main)] font-heading uppercase tracking-tight">Our services</h2>
           </div>
-          <div style={{ width: '100%', height: '1px', background: 'rgba(0,0,0,0.08)', marginTop: '1.5rem' }} />
         </div>
 
         {/* 3D Stack Container with Buttons */}
@@ -467,7 +456,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mechanicsData.map((mechanic, idx) => {
               const mecId   = mechanic._id || mechanic.id
               const mecName = mechanic.name
