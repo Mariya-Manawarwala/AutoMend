@@ -141,7 +141,7 @@ export default function Home() {
         {/* Overlay: Light translucent, slightly blurry overlay — lets car show through softly */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(244,246,248,0.55) 0%, rgba(244,246,248,0.72) 50%, rgba(244,246,248,0.92) 100%)',
+          background: 'var(--hero-overlay-bg)',
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
           zIndex: 1,
@@ -176,7 +176,7 @@ export default function Home() {
 
             {/* Booking card — Frosted glass light with blury overlay */}
             <div style={{ 
-              background: 'rgba(255,255,255,0.72)', 
+              background: 'var(--booking-card-bg)', 
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
               borderRadius: '16px', 
@@ -185,10 +185,10 @@ export default function Home() {
               margin: '0 auto',
               maxWidth: '620px',
               width: '100%',
-              border: '1px solid rgba(255,255,255,0.8)',
+              border: '1px solid var(--booking-card-border)',
             }}>
               {/* Tabs */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.75rem', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.4rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.4rem' }}>
                 {SERVICE_TYPES.map(t => (
                   <button
                     key={t.id}
@@ -213,7 +213,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-left">
                 <div className="sm:col-span-4">
                   <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
                     <FaMapMarkerAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
                     <input type="text" placeholder="City, Area" value={location} onChange={e => setLocation(e.target.value)}
                       style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
@@ -221,7 +221,7 @@ export default function Home() {
                 </div>
                 <div className="sm:col-span-3">
                   <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
                     <FaCalendarAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
                     <input type="text" placeholder="Pick date" value={startDate} onChange={e => setStartDate(e.target.value)}
                       onFocus={e => (e.target.type = 'date')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
@@ -230,7 +230,7 @@ export default function Home() {
                 </div>
                 <div className="sm:col-span-3">
                   <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Time</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
                     <FaWrench style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} rotate={90} />
                     <input type="text" placeholder="Pick time" value={endDate} onChange={e => setEndDate(e.target.value)}
                       onFocus={e => (e.target.type = 'time')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
@@ -253,7 +253,7 @@ export default function Home() {
       </section>
 
       {/* Brand logos strip — Infinite Marquee */}
-      <div className="relative z-10 border-t border-black/5 bg-white/60 backdrop-blur-md py-5 overflow-hidden">
+      <div className="relative z-10 border-t border-[var(--color-border)] bg-[var(--booking-card-bg)] backdrop-blur-md py-5 overflow-hidden">
         <motion.div
           animate={{ x: [0, -1000] }}
           transition={{
@@ -280,7 +280,7 @@ export default function Home() {
       </div>
 
       {/* ── STATS STRIP (Fully Responsive Grid) ── */}
-      <section className="bg-[var(--color-bg)] py-10 px-4 md:px-8 border-t border-b border-black/5">
+      <section className="bg-[var(--color-bg)] py-10 px-4 md:px-8 border-t border-b border-[var(--color-border)]">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {STATS.map((stat, i) => (
             <motion.div
@@ -319,26 +319,26 @@ export default function Home() {
             <button 
               onClick={prevService}
               style={{ 
-                width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', 
-                border: '1px solid rgba(217,137,106,0.3)', color: 'var(--color-primary)', cursor: 'pointer', 
+                width: '60px', height: '60px', borderRadius: '50%', background: 'var(--carousel-btn-bg)', 
+                border: '1px solid var(--carousel-btn-border)', color: 'var(--color-primary)', cursor: 'pointer', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto',
                 transition: 'all 0.3s', boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.85)'; e.currentTarget.style.color = 'var(--color-primary)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--carousel-btn-bg)'; e.currentTarget.style.color = 'var(--color-primary)' }}
             >
               <FaArrowRight style={{ transform: 'rotate(180deg)' }} />
             </button>
             <button 
               onClick={nextService}
               style={{ 
-                width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', 
-                border: '1px solid rgba(217,137,106,0.3)', color: 'var(--color-primary)', cursor: 'pointer', 
+                width: '60px', height: '60px', borderRadius: '50%', background: 'var(--carousel-btn-bg)', 
+                border: '1px solid var(--carousel-btn-border)', color: 'var(--color-primary)', cursor: 'pointer', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto',
                 transition: 'all 0.3s', boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.85)'; e.currentTarget.style.color = 'var(--color-primary)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--carousel-btn-bg)'; e.currentTarget.style.color = 'var(--color-primary)' }}
             >
               <FaArrowRight />
             </button>
@@ -378,7 +378,7 @@ export default function Home() {
                     background: 'var(--color-surface)', 
                     boxShadow: isCenter ? '0 40px 80px rgba(0,0,0,0.8)' : '0 10px 30px rgba(0,0,0,0.4)',
                     cursor: 'pointer',
-                    border: isCenter ? '1px solid rgba(217,137,106,0.3)' : '1px solid rgba(255,255,255,0.05)'
+                    border: isCenter ? '1px solid rgba(217,137,106,0.3)' : '1px solid var(--color-border)'
                   }}
                   onClick={() => setActiveIndex(idx)}
                 >
@@ -440,7 +440,7 @@ export default function Home() {
       </section>
 
       {/* ── MECHANICS ── */}
-      <section style={{ background: 'var(--color-surface)', padding: '5rem 2rem', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section style={{ background: 'var(--color-surface)', padding: '5rem 2rem', borderTop: '1px solid var(--color-border)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3rem', gap: '1.5rem', flexWrap: 'wrap' }}>
             <div>
@@ -492,7 +492,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)', lineHeight: 1.65, marginBottom: '1.25rem' }}>{mecDesc}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <FaStar style={{ color: 'var(--color-primary)', fontSize: '0.85rem' }} />
                       <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-dark-graphite)' }}>{mecRating}</span>
@@ -510,7 +510,7 @@ export default function Home() {
       </section>
 
       {/* ── CTA BANNER ── */}
-      <section style={{ background: 'var(--color-bg)', padding: '5rem 2rem', textAlign: 'center', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section style={{ background: 'var(--color-bg)', padding: '5rem 2rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-primary)', display: 'block', marginBottom: '0.75rem' }}>Ready to get started?</span>
           <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 1rem' }}>
@@ -523,7 +523,7 @@ export default function Home() {
             <Link to="/booking" style={{ padding: '0.85rem 2.2rem', background: 'var(--color-primary)', color: 'var(--color-bg)', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none', transition: 'background 0.2s', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
               Book Now <FaArrowRight />
             </Link>
-            <Link to="/services" style={{ padding: '0.85rem 2.2rem', background: 'transparent', border: '1.5px solid rgba(0,0,0,0.15)', color: 'var(--color-dark-graphite)', borderRadius: '10px', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
+            <Link to="/services" style={{ padding: '0.85rem 2.2rem', background: 'transparent', border: '1.5px solid var(--secondary-cta-border)', color: 'var(--color-dark-graphite)', borderRadius: '10px', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
               Explore Services
             </Link>
           </div>

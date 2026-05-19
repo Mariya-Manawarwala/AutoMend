@@ -1,65 +1,106 @@
 @import "tailwindcss";
 
 /* ════════════════════════════════════════════════════════════
-   DESIGN TOKENS — Based on Biscarrosse editorial reference
-   Light: Clean white/off-white editorial
-   Dark:  Deep teal #1C3D3D environment
+   DYNAMIC DUAL-THEME SYSTEM (Light / Dark Switcher)
+   Light: Premium Cream/Peach Editorial Reference
+   Dark:  Settled, Minimal Deep Charcoal Graphite Environment
 ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── DARK THEME VARIABLES (Default) ─── */
+  --bg-color: #0F1115;
+  --surface-color: #16181D;
+  --card-color: #1D2026;
+  --text-main: #F3F4F6;
+  --text-muted: #9CA3AF;
+  --primary-color: #D9896A; /* Peach brand primary */
+  --accent-color: #6FA7A1;  /* Teal brand accent */
+  --highlight-color: #E8CFC1;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --hero-overlay-bg: linear-gradient(to bottom, rgba(15, 17, 21, 0.55) 0%, rgba(15, 17, 21, 0.72) 50%, rgba(15, 17, 21, 0.92) 100%);
+  --booking-card-bg: rgba(22, 24, 29, 0.72);
+  --booking-card-border: rgba(255, 255, 255, 0.15);
+  --booking-input-border: rgba(255, 255, 255, 0.15);
+  --carousel-btn-bg: rgba(22, 24, 29, 0.85);
+  --carousel-btn-border: rgba(255, 255, 255, 0.1);
+  --secondary-cta-border: rgba(255, 255, 255, 0.15);
+  --navbar-glass-bg: rgba(22, 24, 29, 0.65);
+}
+
+html.light {
+  /* ─── LIGHT THEME VARIABLES ─── */
+  --bg-color: #F4F6F8;
+  --surface-color: #FFFFFF;
+  --card-color: #FFFFFF;
+  --text-main: #16181D;
+  --text-muted: #6B7280;
+  --primary-color: #D9896A;
+  --accent-color: #6FA7A1;
+  --highlight-color: #E8CFC1;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --hero-overlay-bg: linear-gradient(to bottom, rgba(244, 246, 248, 0.55) 0%, rgba(244, 246, 248, 0.72) 50%, rgba(244, 246, 248, 0.92) 100%);
+  --booking-card-bg: rgba(255, 255, 255, 0.72);
+  --booking-card-border: rgba(255, 255, 255, 0.8);
+  --booking-input-border: rgba(0, 0, 0, 0.1);
+  --carousel-btn-bg: rgba(255, 255, 255, 0.85);
+  --carousel-btn-border: rgba(217, 137, 106, 0.3);
+  --secondary-cta-border: rgba(0, 0, 0, 0.15);
+  --navbar-glass-bg: rgba(255, 255, 255, 0.65);
+}
+
 @theme {
-  /* ─── NEW LUXURY MINIMALIST PALETTE ─── */
-  --color-bg: #F4F6F8; /* Light and cool background */
-  --color-surface: #FFFFFF; /* Pure white cards */
-  --color-primary: #D9896A;
-  --color-accent: #6FA7A1;
-  --color-highlight: #E8CFC1;
-  --color-text-main: #16181D;
-  --color-text-muted: #6B7280;
-  --color-white: var(--color-text-main);
-  --color-black: var(--color-bg);
+  --color-bg: var(--bg-color);
+  --color-surface: var(--surface-color);
+  --color-primary: var(--primary-color);
+  --color-accent: var(--accent-color);
+  --color-highlight: var(--highlight-color);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-white: var(--text-main);
+  --color-black: var(--bg-color);
   
-  --color-dark-graphite: #16181D;
+  --color-dark-graphite: var(--text-main);
 
-  /* ─── LEGACY ALIASES (mapped to new palette) ─── */
-  --color-deep-black: var(--color-bg);
-  --color-void: var(--color-bg);
-  --color-midnight: var(--color-bg);
+  /* ─── LEGACY ALIASES (mapped dynamically) ─── */
+  --color-deep-black: var(--bg-color);
+  --color-void: var(--bg-color);
+  --color-midnight: var(--bg-color);
   
-  --color-soft-dark: var(--color-surface);
-  --color-card: var(--color-surface);
-  --color-carbon: var(--color-surface);
-  --color-elevated: var(--color-surface);
+  --color-soft-dark: var(--surface-color);
+  --color-card: var(--card-color);
+  --color-carbon: var(--card-color);
+  --color-elevated: var(--card-color);
 
-  --color-gold: var(--color-primary);
-  --color-sierra: var(--color-primary);
-  --color-champagne: var(--color-primary);
-  --color-teal-deep: var(--color-primary);
+  --color-gold: var(--primary-color);
+  --color-sierra: var(--primary-color);
+  --color-champagne: var(--primary-color);
+  --color-teal-deep: var(--primary-color);
 
-  --color-emerald: var(--color-accent);
-  --color-teal: var(--color-accent);
-  --color-slate: var(--color-accent);
-  --color-sage: var(--color-accent);
+  --color-emerald: var(--accent-color);
+  --color-teal: var(--accent-color);
+  --color-slate: var(--accent-color);
+  --color-sage: var(--accent-color);
   
-  --color-light-gold: var(--color-highlight);
-  --color-ember: var(--color-highlight);
-  --color-teal-light: var(--color-highlight);
-  --color-teal-pale: var(--color-highlight);
+  --color-light-gold: var(--highlight-color);
+  --color-ember: var(--highlight-color);
+  --color-teal-light: var(--highlight-color);
+  --color-teal-pale: var(--highlight-color);
 
-  --color-text-light: var(--color-text-main);
-  --color-text-dark: var(--color-bg);
-  --color-text-body: var(--color-text-muted);
-  --color-text-gray: var(--color-text-muted);
-  --color-text-muted: var(--color-text-muted);
+  --color-text-light: var(--text-main);
+  --color-text-dark: var(--bg-color);
+  --color-text-body: var(--text-muted);
+  --color-text-gray: var(--text-muted);
 
   --color-teal-faint: rgba(111,167,161,0.15);
   --color-slate-faint: rgba(111,167,161,0.15); 
-  --color-border-dark: rgba(0,0,0,0.22);
-  --color-border: rgba(0,0,0,0.18);
+  --color-border-dark: var(--border-color);
+  --color-border: var(--border-color);
 
-  --color-lbg: #16181D;
-  --color-lbg2: #22252C;
-  --color-lcard: #22252C;
-  --color-lborder: rgba(255,255,255,0.05);
-  --color-laccent: #6FA7A1;
+  --color-lbg: var(--bg-color);
+  --color-lbg2: var(--surface-color);
+  --color-lcard: var(--card-color);
+  --color-lborder: var(--border-color);
+  --color-laccent: var(--accent-color);
 
   /* ─── FONTS ─── */
   --font-display:  'Clash Display', 'General Sans', system-ui, sans-serif;
@@ -86,7 +127,7 @@ html { scroll-behavior: smooth; }
 
 body {
   background: var(--color-bg);
-  color: var(--color-dark-graphite);
+  color: var(--color-text-main);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.65;
@@ -95,82 +136,81 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════
-   GLOBAL LIGHT-THEME — applies to whole document (no .light class needed)
-   All dark-mode Tailwind classes are remapped here so dashboards
-   & public pages look correct on the light bg without per-file changes.
+   LIGHT-THEME SPECIFIC OVERRIDES (only active when .light class is present)
+   This remaps dark classes so the cream layout renders perfectly.
 ════════════════════════════════════════════════════════════ */
 
 /* ── Backgrounds ── */
-.bg-deep-black, .bg-void, .bg-carbon, .bg-midnight { background-color: var(--color-bg) !important; }
-.bg-soft-dark   { background-color: var(--color-surface) !important; }
-.bg-card        { background-color: var(--color-surface) !important; }
-.bg-elevated    { background-color: var(--color-surface) !important; }
-.bg-surface     { background-color: var(--color-surface) !important; }
+.light .bg-deep-black, .light .bg-void, .light .bg-carbon, .light .bg-midnight { background-color: var(--color-bg) !important; }
+.light .bg-soft-dark   { background-color: var(--color-surface) !important; }
+.light .bg-card        { background-color: var(--color-surface) !important; }
+.light .bg-elevated    { background-color: var(--color-surface) !important; }
+.light .bg-surface     { background-color: var(--color-surface) !important; }
 
 /* Transparent overlays → visible on light bg */
-.bg-white\/5    { background-color: rgba(22,24,29,0.04) !important; }
-.bg-white\/10   { background-color: rgba(22,24,29,0.07) !important; }
-.bg-white\/20   { background-color: rgba(22,24,29,0.10) !important; }
-.bg-black\/20   { background-color: rgba(22,24,29,0.05) !important; }
-.bg-black\/40   { background-color: rgba(22,24,29,0.08) !important; }
-.bg-black\/60   { background-color: rgba(22,24,29,0.45) !important; }
+.light .bg-white\/5    { background-color: rgba(22,24,29,0.04) !important; }
+.light .bg-white\/10   { background-color: rgba(22,24,29,0.07) !important; }
+.light .bg-white\/20   { background-color: rgba(22,24,29,0.10) !important; }
+.light .bg-black\/20   { background-color: rgba(22,24,29,0.05) !important; }
+.light .bg-black\/40   { background-color: rgba(22,24,29,0.08) !important; }
+.light .bg-black\/60   { background-color: rgba(22,24,29,0.45) !important; }
 
 /* ── Text ── */
-.text-white             { color: var(--color-dark-graphite) !important; }
-.text-text-light        { color: var(--color-dark-graphite) !important; }
-.text-text-muted        { color: var(--color-text-muted) !important; }
-.text-text-gray         { color: var(--color-text-muted) !important; }
-.text-text-body         { color: var(--color-text-muted) !important; }
-.text-gray-400, .text-gray-500 { color: var(--color-text-muted) !important; }
-.text-slate-400, .text-slate-500 { color: var(--color-text-muted) !important; }
+.light .text-white             { color: var(--color-dark-graphite) !important; }
+.light .text-text-light        { color: var(--color-dark-graphite) !important; }
+.light .text-text-muted        { color: var(--color-text-muted) !important; }
+.light .text-text-gray         { color: var(--color-text-muted) !important; }
+.light .text-text-body         { color: var(--color-text-muted) !important; }
+.light .text-gray-400, .light .text-gray-500 { color: var(--color-text-muted) !important; }
+.light .text-slate-400, .light .text-slate-500 { color: var(--color-text-muted) !important; }
 
 /* Gold/accent text — keep peach tone */
-.text-gold, .text-champagne { color: var(--color-primary) !important; }
-.text-light-gold        { color: var(--color-highlight) !important; }
-.text-emerald, .text-teal { color: var(--color-accent) !important; }
+.light .text-gold, .light .text-champagne { color: var(--color-primary) !important; }
+.light .text-light-gold        { color: var(--color-highlight) !important; }
+.light .text-emerald, .light .text-teal { color: var(--color-accent) !important; }
 
 /* ── Borders ── */
-.border-white\/5        { border-color: var(--color-border) !important; }
-.border-white\/10       { border-color: rgba(22,24,29,0.14) !important; }
-.border-white\/20       { border-color: rgba(22,24,29,0.18) !important; }
+.light .border-white\/5        { border-color: var(--color-border) !important; }
+.light .border-white\/10       { border-color: rgba(22,24,29,0.14) !important; }
+.light .border-white\/20       { border-color: rgba(22,24,29,0.18) !important; }
 
 /* ── Placeholder ── */
-.placeholder\:text-white\/20::placeholder { color: var(--color-text-muted) !important; opacity: 0.5; }
-.placeholder\:text-text-muted::placeholder { color: var(--color-text-muted) !important; }
+.light .placeholder\:text-white\/20::placeholder { color: var(--color-text-muted) !important; opacity: 0.5; }
+.light .placeholder\:text-text-muted::placeholder { color: var(--color-text-muted) !important; }
 
 /* ── Shadows ── */
-.shadow-xl, .shadow-2xl { box-shadow: var(--shadow-card-hover) !important; }
-.shadow-lg              { box-shadow: var(--shadow-card) !important; }
+.light .shadow-xl, .light .shadow-2xl { box-shadow: var(--shadow-card-hover) !important; }
+.light .shadow-lg              { box-shadow: var(--shadow-card) !important; }
 
 /* ── Backdrop/Glass ── */
-.bg-card\/40, .bg-card\/30, .bg-card\/80, .bg-card\/90 {
+.light .bg-card\/40, .light .bg-card\/30, .light .bg-card\/80, .light .bg-card\/90 {
   background-color: rgba(255,255,255,0.85) !important;
   backdrop-filter: blur(16px);
 }
 
 /* ── Inputs ── */
-input, textarea, select {
+.light input, .light textarea, .light select {
   color: var(--color-dark-graphite) !important;
 }
-input::placeholder, textarea::placeholder {
+.light input::placeholder, .light textarea::placeholder {
   color: var(--color-text-muted) !important;
   opacity: 0.7;
 }
 
 /* ── Buttons — keep primary btn readable ── */
-.bg-gold        { background-color: var(--color-primary) !important; color: #fff !important; }
-.bg-gradient-to-r.from-gold { color: #fff !important; }
+.light .bg-gold        { background-color: var(--color-primary) !important; color: #fff !important; }
+.light .bg-gradient-to-r.from-gold { color: #fff !important; }
 
 /* ── Sidebar active dot pill ── */
-.bg-lbg  { background-color: var(--color-bg) !important; }
-.bg-lbg2 { background-color: var(--color-surface) !important; }
+.light .bg-lbg  { background-color: var(--color-bg) !important; }
+.light .bg-lbg2 { background-color: var(--color-surface) !important; }
 
 /* Scrollbar */
-.custom-scrollbar { scrollbar-color: rgba(22,24,29,0.15) transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.light .custom-scrollbar { scrollbar-color: rgba(22,24,29,0.15) transparent; }
+.light .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(22,24,29,0.15);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(22,24,29,0.28);
 }
 

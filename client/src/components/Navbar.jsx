@@ -46,7 +46,7 @@ export default function Navbar() {
     user?.role === 'mechanic' ? '/dashboard/mechanic' :
     '/dashboard/customer'
 
-  const navBg = isHome && !scrolled ? 'rgba(255,255,255,0.45)' : 'var(--color-surface)'
+  const navBg = isHome && !scrolled ? 'var(--navbar-glass-bg)' : 'var(--color-surface)'
   const textColor = 'var(--color-text-main)'
   const mutedColor = 'var(--color-text-muted)'
   const accentColor = 'var(--color-accent)'
