@@ -36,6 +36,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from the React app build directory
+const distPath = path.join(__dirname, "../client/dist");
+app.use(express.static(distPath));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
@@ -53,8 +57,15 @@ app.use("/api/chat", chatRoutes);
 
 app.use("/invoices", express.static(path.join(__dirname, "invoices")));
 
-app.get("/", (req, res) => {
-  res.send("AutoMend API is running");
+app.get("/*splat", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) {
+      res.send("AutoMend API is running");
+    }
+  });
 });
 
 app.use(errorHandler);
