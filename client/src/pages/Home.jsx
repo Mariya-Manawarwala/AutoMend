@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { FaWrench, FaCar, FaSearch, FaMapMarkerAlt, FaCalendarAlt, FaStar, FaArrowRight, FaCheckCircle, FaTools, FaOilCan, FaCogs } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { SERVICES as MOCK_SERVICES, MECHANICS as MOCK_MECHANICS, STATS } from '../data/constants'
 import { getAllServices } from '../api/services.api'
 import { getPublicMechanics } from '../api/mechanics.api'
-
-const SERVICE_TYPES = [
-  { id: 'repair', label: 'Repair', icon: FaWrench },
-  { id: 'inspection', label: 'Inspection', icon: FaTools },
-]
 
 const BRAND_LOGOS = [
   { name: 'BMW', symbol: 'BMW' },
@@ -44,15 +39,61 @@ const getServiceImage = (name) => {
 
 export default function Home() {
   const navigate = useNavigate()
-  const [activeType, setActiveType] = useState('repair')
-  const [location, setLocation] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const showSuggestions = isFocused || isHovered
+  const [placeholder, setPlaceholder] = useState('')
 
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
   const [mechanicsData, setMechanicsData] = useState(MOCK_MECHANICS)
+
+  const placeholders = [
+    "Engine making ticking noise…",
+    "Need brake replacement",
+    "Battery died suddenly",
+    "Oil leak near front tire"
+  ]
+
+  // Dynamic typing effect for placeholders
+  useEffect(() => {
+    let currentIndex = 0
+    let currentText = ''
+    let isDeleting = false
+    let typingSpeed = 80
+    let timer
+
+    const handleType = () => {
+      const fullText = placeholders[currentIndex]
+      if (isDeleting) {
+        currentText = fullText.substring(0, currentText.length - 1)
+        typingSpeed = 30
+      } else {
+        currentText = fullText.substring(0, currentText.length + 1)
+        typingSpeed = 80
+      }
+
+      setPlaceholder(currentText)
+
+      if (!isDeleting && currentText === fullText) {
+        timer = setTimeout(() => {
+          isDeleting = true
+          handleType()
+        }, 2000)
+      } else if (isDeleting && currentText === '') {
+        isDeleting = false
+        currentIndex = (currentIndex + 1) % placeholders.length
+        timer = setTimeout(handleType, 500)
+      } else {
+        timer = setTimeout(handleType, typingSpeed)
+      }
+    }
+
+    handleType()
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -87,13 +128,22 @@ export default function Home() {
   const prevService = () => {
     setActiveIndex(prev => (prev - 1 + services.length) % services.length)
   }
+
   const handleQuickSearch = () => {
     navigate('/booking', { 
       state: { 
-        serviceType: activeType, 
-        location: location, 
-        date: startDate, 
-        time: endDate 
+        issue: searchQuery || placeholder,
+        serviceType: 'repair'
+      } 
+    })
+  }
+
+  const handleChipClick = (suggestion) => {
+    setSearchQuery(suggestion)
+    navigate('/booking', { 
+      state: { 
+        issue: suggestion,
+        serviceType: 'repair'
       } 
     })
   }
@@ -148,7 +198,14 @@ export default function Home() {
         }} />
 
         {/* Decorative asterisks */}
-        <span style={{ position: 'absolute', top: '12%', left: '15%', fontSize: '2.8rem', color: 'var(--color-primary)', fontWeight: 900, lineHeight: 1, userSelect: 'none', zIndex: 3, opacity: 0.8 }}>✳</span>
+        <span style={{ position: 'absolute', top: '12%', left: '15%', color: 'var(--color-primary)', userSelect: 'none', zIndex: 3, opacity: 0.8 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ width: '2.8rem', height: '2.8rem' }}>
+            <line x1="12" y1="2" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+            <line x1="19.07" y1="4.93" x2="4.93" y2="19.07" />
+          </svg>
+        </span>
         <span style={{ position: 'absolute', top: '10%', right: '18%', fontSize: '1rem', color: 'var(--color-primary)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
         <span style={{ position: 'absolute', top: '70%', left: '10%', fontSize: '0.9rem', color: 'var(--color-accent)', fontWeight: 900, userSelect: 'none', zIndex: 3, opacity: 0.6 }}>✦</span>
 
@@ -174,79 +231,93 @@ export default function Home() {
               Get a certified mechanic wherever and whenever you need it — right from your phone or desktop.
             </p>
 
-            {/* Booking card — Frosted glass light with blury overlay */}
-            <div style={{ 
-              background: 'var(--booking-card-bg)', 
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '16px', 
-              padding: '1.2rem 1.6rem', 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
-              margin: '0 auto',
-              maxWidth: '620px',
-              width: '100%',
-              border: '1px solid var(--booking-card-border)',
-            }}>
-              {/* Tabs */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.75rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.4rem' }}>
-                {SERVICE_TYPES.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveType(t.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '0.35rem',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      fontSize: '0.82rem', fontWeight: 600,
-                      color: activeType === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                      paddingBottom: '0.2rem',
-                      borderBottom: activeType === t.id ? '2px solid var(--color-primary)' : '2px solid transparent',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <t.icon style={{ fontSize: '0.85rem' }} />
-                    {t.label}
-                  </button>
-                ))}
+            {/* AI Search Card */}
+            <div 
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="mx-auto w-full max-w-[620px] rounded-[24px] border border-[var(--booking-card-border)] bg-[var(--booking-card-bg)] backdrop-blur-[20px] p-4 sm:p-5 shadow-[0_20px_48px_rgba(0,0,0,0.15),_0_1px_6px_rgba(0,0,0,0.05)] transition-all duration-300"
+            >
+              {/* Intelligent Search Input Container */}
+              <div 
+                className={`flex flex-col sm:flex-row sm:items-center bg-white/5 border rounded-2xl p-3 sm:py-2.5 sm:pr-2.5 sm:pl-5 transition-all duration-300 ${
+                  isFocused 
+                    ? 'border-[var(--color-primary)] shadow-[0_0_15px_rgba(217,137,106,0.2)]' 
+                    : 'border-[var(--color-border)]'
+                }`}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0 mb-3 sm:mb-0">
+                  <FaSearch 
+                    className={`text-base transition-colors duration-200 shrink-0 ${
+                      isFocused ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'
+                    }`} 
+                  />
+                  <div className="flex flex-col flex-1 min-w-0 text-left">
+                    <span 
+                      className="text-[10px] sm:text-[11px] font-extrabold text-[var(--color-primary)] uppercase tracking-wider mb-0.5 truncate"
+                    >
+                      What's wrong with your car?
+                    </span>
+                    <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                      placeholder={placeholder}
+                      className="w-full border-none outline-none text-sm sm:text-base font-semibold text-[var(--color-text-main)] bg-transparent p-0 placeholder-[var(--color-text-muted)]/50"
+                      style={{
+                        caretColor: 'var(--color-primary)',
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={handleQuickSearch}
+                  className="w-full sm:w-auto bg-[var(--color-primary)] text-white hover:bg-[var(--color-highlight)] active:scale-95 border-none rounded-xl py-3 px-5 sm:py-3 sm:px-6 text-xs sm:text-sm font-extrabold cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 whitespace-nowrap shrink-0"
+                >
+                  <span>Diagnose</span>
+                  <FaArrowRight className="text-[10px] sm:text-xs" />
+                </button>
               </div>
 
-              {/* Inputs row — completely responsive */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end text-left">
-                <div className="sm:col-span-4">
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Location</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
-                    <FaMapMarkerAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
-                    <input type="text" placeholder="City, Area" value={location} onChange={e => setLocation(e.target.value)}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
-                  </div>
-                </div>
-                <div className="sm:col-span-3">
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
-                    <FaCalendarAlt style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} />
-                    <input type="text" placeholder="Pick date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                      onFocus={e => (e.target.type = 'date')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
-                  </div>
-                </div>
-                <div className="sm:col-span-3">
-                  <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Time</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderBottom: '1px solid var(--booking-input-border)', paddingBottom: '0.25rem' }}>
-                    <FaWrench style={{ color: 'var(--color-primary)', fontSize: '0.75rem' }} rotate={90} />
-                    <input type="text" placeholder="Pick time" value={endDate} onChange={e => setEndDate(e.target.value)}
-                      onFocus={e => (e.target.type = 'time')} onBlur={e => { if (!e.target.value) e.target.type = 'text' }}
-                      style={{ width: '100%', border: 'none', outline: 'none', fontSize: '0.8rem', color: 'var(--color-text-main)', background: 'transparent' }} />
-                  </div>
-                </div>
-                <div className="sm:col-span-2">
-                  <button 
-                    onClick={handleQuickSearch}
-                    className="w-full h-[38px] rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-[var(--color-bg)] flex items-center justify-center fontSize-0.9rem flex-shrink-0 transition-all hover:scale-105 active:scale-95 border-none cursor-pointer"
+              {/* Suggestions / Chips */}
+              <AnimatePresence>
+                {showSuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <FaSearch className="mr-2 sm:mr-0" />
-                    <span className="sm:hidden font-bold text-xs uppercase tracking-wider">Search</span>
-                  </button>
-                </div>
-              </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] sm:text-[11px] font-extrabold text-[var(--color-text-muted)] uppercase tracking-wider mb-2.5">
+                        Smart Suggestions
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { text: "Engine Ticking Noise", icon: "🔧" },
+                          { text: "Brake Replacement", icon: "🛑" },
+                          { text: "Battery Died", icon: "🔋" },
+                          { text: "Fluid Leak", icon: "💧" },
+                          { text: "Diagnostic Scan", icon: "🔍" },
+                          { text: "Transmission Issue", icon: "⚙️" }
+                        ].map((chip) => (
+                          <button
+                            key={chip.text}
+                            onClick={() => handleChipClick(chip.text)}
+                            className="inline-flex items-center gap-1.5 py-1.5 px-3 sm:py-2 sm:px-4 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-main)] text-[11px] sm:text-xs font-bold cursor-pointer transition-all duration-200 hover:border-[var(--color-primary)] hover:-translate-y-0.5 hover:bg-[var(--color-primary)]/5 active:translate-y-0"
+                          >
+                            <span>{chip.icon}</span>
+                            <span>{chip.text}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>

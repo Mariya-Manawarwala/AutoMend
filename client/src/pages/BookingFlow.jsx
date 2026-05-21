@@ -66,11 +66,12 @@ export default function BookingFlow() {
 
   useEffect(() => {
     if (location.state) {
-      const { serviceType, location: loc, date, time } = location.state
+      const { serviceType, location: loc, date, time, issue } = location.state
       setForm(prev => ({
         ...prev,
         location: loc || '',
-        service: serviceType === 'repair' ? 'Repair' : serviceType === 'inspection' ? 'Inspection' : ''
+        service: serviceType === 'repair' ? 'Repair' : serviceType === 'inspection' ? 'Inspection' : '',
+        issue: issue || prev.issue
       }))
       
       if (date) {

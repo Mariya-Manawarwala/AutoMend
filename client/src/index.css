@@ -841,7 +841,7 @@ html, body {
   inset: 0;
   background: rgba(0,0,0,0.45);
   backdrop-filter: blur(4px);
-  z-index: 80;
+  z-index: 200; /* Increased to slide over top navigation headers on mobile */
 }
 .mobile-drawer {
   position: fixed;
@@ -850,9 +850,10 @@ html, body {
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   box-shadow: 4px 0 32px rgba(0,0,0,0.15);
-  z-index: 90;
+  z-index: 210; /* Positioned above the backdrop overlay */
   overflow-y: auto;
   padding: 1.5rem;
+  padding-top: calc(1.5rem + env(safe-area-inset-top)); /* Prevents notch overlapping */
   padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;

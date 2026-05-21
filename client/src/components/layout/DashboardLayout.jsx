@@ -206,10 +206,11 @@ export default function DashboardLayout({
                 background: 'var(--color-surface)',
                 borderRight: '1px solid var(--color-border)',
                 boxShadow: '4px 0 32px rgba(0,0,0,0.15)',
-                zIndex: 90,
+                zIndex: 210,
                 overflowY: 'auto',
                 display: 'flex', flexDirection: 'column',
-                paddingBottom: 'env(safe-area-inset-bottom)',
+                paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+                paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
               }}
             >
               {/* Drawer close button */}

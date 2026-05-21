@@ -105,6 +105,18 @@ export default function Login() {
 
       {/* RIGHT SIDE: Minimal Form */}
       <div className="flex-1 bg-deep-black relative flex items-center justify-center lg:justify-start lg:pl-20 px-6">
+        {/* Mobile Back to Home Option */}
+        <div className="absolute top-6 left-6 lg:hidden">
+          <Link to="/" className="inline-flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-gold flex items-center justify-center group-hover:shadow-[0_0_15px_rgba(200,155,60,0.4)] transition-all">
+              <FaCar className="text-deep-black text-sm" />
+            </div>
+            <span className="text-sm font-heading font-bold text-white tracking-tight">
+              Auto<span className="text-gold">Mend</span>
+            </span>
+          </Link>
+        </div>
+
         <div className="w-full max-w-md flex">
           {/* Main Form Content */}
           <div className="flex-1">
